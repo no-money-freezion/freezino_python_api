@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freezino API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+        html { box-sizing: border-box; overflow-y: scroll; }
+        *, *:before, *:after { box-sizing: inherit; }
+        body { margin: 0; background: #fafafa; }
+        .topbar { display: none; }
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            // Load openapi.yaml from same directory
+            fetch('openapi.yaml')
+                .then(response => response.text())
+                .then(yamlContent => {
+                    const ui = SwaggerUIBundle({
+                        spec: jsyaml.load(yamlContent),
+                        dom_id: '#swagger-ui',
+                        deepLinking: true,
+                        presets: [
+                            SwaggerUIBundle.presets.apis,
+                            SwaggerUIStandalonePreset
+                        ],
+                        plugins: [
+                            SwaggerUIBundle.plugins.DownloadUrl
+                        ],
+                        layout: "StandaloneLayout"
+                    });
+                    window.ui = ui;
+                })
+                .catch(err => {
+                    // Fallback: show instructions if local file loading fails
+                    document.getElementById('swagger-ui').innerHTML = `
+                        <div style="padding: 20px; font-family: sans-serif;">
+                            <h2>Local File Access Restricted</h2>
+                            <p>Browsers block local file access for security. Use one of these options:</p>
+                            <ol>
+                                <li><strong>Local Server:</strong> Run <code>python -m http.server 8000</code> in this folder, then open <a href="http://localhost:8000/swagger-ui.html">http://localhost:8000/swagger-ui.html</a></li>
+                                <li><strong>Online:</strong> Go to <a href="https://editor.swagger.io/" target="_blank">editor.swagger.io</a> and import openapi.yaml</li>
+                                <li><strong>VS Code:</strong> Install "Swagger Viewer" extension</li>
+                            </ol>
+                        </div>
+                    `;
+                });
+        };
+    </script>
+    <script src="https://unpkg.com/js-yaml@4/dist/js-yaml.min.js"></script>
+</body>
+</html>
