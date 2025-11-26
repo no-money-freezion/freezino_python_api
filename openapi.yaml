@@ -11,6 +11,15 @@ info:
     - Google OAuth 2.0 for user authentication
     - JWT tokens for API authorization
 
+    ### How to authenticate
+    1. Register via `POST /auth/register` or login via `POST /auth/login` (or use Google OAuth)
+    2. You will receive `access_token` and `refresh_token`
+    3. For protected endpoints (marked with 🔒), add header:
+       ```
+       Authorization: Bearer <access_token>
+       ```
+    4. When access token expires, use `POST /auth/refresh` with refresh_token to get a new one
+
     ## Features
     - Work system with multiple job types
     - Casino games (Roulette, Slots, Blackjack, Crash, Hi-Lo, Wheel)
@@ -90,7 +99,34 @@ paths:
       tags:
         - Authentication
       summary: Register new user
-      description: Create a new user account with username and password
+      description: |
+        Create a new user account with username, email and password.
+
+        **New users receive:**
+        - Starting balance: $1000
+        - Starter clothing item (equipped)
+        - Starter house (equipped)
+
+        **Example request:**
+        ```json
+        {
+          "username": "player1",
+          "email": "player1@example.com",
+          "password": "secret123"
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "user": { "id": 1, "username": "player1", "balance": 1000, ... },
+            "access_token": "eyJhbGciOiJIUzI1NiIs...",
+            "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
+          }
+        }
+        ```
       requestBody:
         required: true
         content:
@@ -106,12 +142,15 @@ paths:
                   type: string
                   minLength: 3
                   maxLength: 50
+                  example: "player1"
                 email:
                   type: string
                   format: email
+                  example: "player1@example.com"
                 password:
                   type: string
                   minLength: 6
+                  example: "secret123"
       responses:
         '201':
           description: User registered successfully
@@ -122,6 +161,7 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   data:
                     type: object
                     properties:
@@ -129,17 +169,44 @@ paths:
                         $ref: '#/components/schemas/User'
                       access_token:
                         type: string
+                        description: JWT token for API access (use in Authorization header)
                       refresh_token:
                         type: string
+                        description: Token to get new access_token when it expires
         '400':
-          description: Validation error or user already exists
+          description: |
+            Validation error. Possible messages:
+            - "username already exists"
+            - "email already exists"
+            - "password too short"
 
   /auth/login:
     post:
       tags:
         - Authentication
       summary: Login user
-      description: Authenticate user with username/email and password
+      description: |
+        Authenticate existing user with username/email and password.
+
+        **Example request:**
+        ```json
+        {
+          "login": "player1",
+          "password": "secret123"
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "user": { "id": 1, "username": "player1", "balance": 5000, ... },
+            "access_token": "eyJhbGciOiJIUzI1NiIs...",
+            "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
+          }
+        }
+        ```
       requestBody:
         required: true
         content:
@@ -152,9 +219,11 @@ paths:
               properties:
                 login:
                   type: string
-                  description: Username or email
+                  description: Username or email address
+                  example: "player1"
                 password:
                   type: string
+                  example: "secret123"
       responses:
         '200':
           description: Login successful
@@ -165,6 +234,7 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   data:
                     type: object
                     properties:
@@ -175,115 +245,227 @@ paths:
                       refresh_token:
                         type: string
         '401':
-          description: Invalid credentials
+          description: Invalid credentials - wrong username/email or password
 
   /auth/google:
     get:
       tags:
         - Authentication
       summary: Initiate Google OAuth login
-      description: Redirects to Google OAuth consent screen
+      description: |
+        Redirects browser to Google OAuth consent screen.
+
+        **Usage:** Open this URL in browser (not via API call).
+        After user authorizes, Google redirects to `/auth/google/callback`.
+
+        **Flow:**
+        1. Frontend opens `GET /api/auth/google` in browser
+        2. User sees Google login page
+        3. User authorizes the app
+        4. Google redirects to callback with tokens
+        5. Frontend receives tokens via URL parameters
       responses:
         '302':
-          description: Redirect to Google OAuth
+          description: Redirect to Google OAuth consent screen
 
   /auth/google/callback:
     get:
       tags:
         - Authentication
       summary: Google OAuth callback
-      description: Handles Google OAuth callback and creates user session
+      description: |
+        Handles Google OAuth callback. Called by Google after user authorization.
+
+        **Do not call directly** - this is called by Google's OAuth redirect.
+
+        After processing, redirects to frontend URL with tokens in query params:
+        `{FRONTEND_URL}?access_token=xxx&refresh_token=xxx`
       parameters:
         - name: code
           in: query
           required: true
           schema:
             type: string
-          description: OAuth authorization code
+          description: OAuth authorization code from Google
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: CSRF protection state parameter
       responses:
         '302':
-          description: Redirect to frontend with tokens
+          description: Redirect to frontend with tokens in URL
         '400':
-          description: Invalid authorization code
+          description: Invalid or expired authorization code
 
   /auth/refresh:
     post:
       tags:
         - Authentication
       summary: Refresh access token
-      description: Get a new access token using refresh token
+      description: |
+        Get a new access token using refresh token when the old one expires.
+
+        **When to use:** When API returns 401 Unauthorized, your access_token has expired.
+
+        **Example request:**
+        ```json
+        {
+          "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "access_token": "eyJhbGciOiJIUzI1NiIs..."
+        }
+        ```
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - refresh_token
               properties:
-                refreshToken:
+                refresh_token:
                   type: string
+                  description: Refresh token from login/register response
+                  example: "eyJhbGciOiJIUzI1NiIs..."
       responses:
         '200':
-          description: New access token
+          description: New access token generated
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  accessToken:
+                  success:
+                    type: boolean
+                    example: true
+                  access_token:
                     type: string
+                    description: New JWT access token
         '401':
-          description: Invalid refresh token
+          description: Invalid or expired refresh token - user must login again
 
   /auth/me:
     get:
       tags:
         - Authentication
       summary: Get current user
-      description: Get authenticated user information
+      description: |
+        Get profile of currently authenticated user.
+
+        **Example response:**
+        ```json
+        {
+          "user": {
+            "id": 1,
+            "username": "player1",
+            "email": "player1@example.com",
+            "balance": 5000.50,
+            "avatar": "https://...",
+            "created_at": "2024-01-15T10:30:00Z"
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: User information
+          description: Current user data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
         '401':
-          description: Unauthorized
+          description: Missing or invalid access token
 
   /auth/logout:
     post:
       tags:
         - Authentication
       summary: Logout
-      description: Invalidate current session
+      description: |
+        Invalidate current session. After logout, access_token becomes invalid.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "message": "logged out"
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
           description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "logged out"
         '401':
-          description: Unauthorized
+          description: Not authenticated
 
   /user/profile:
     get:
       tags:
         - User
       summary: Get user profile
+      description: |
+        Get full profile of current user including balance and statistics.
+
+        **Example response:**
+        ```json
+        {
+          "id": 1,
+          "username": "player1",
+          "email": "player1@example.com",
+          "balance": 5000.50,
+          "avatar": "https://...",
+          "total_work_time": 3600,
+          "created_at": "2024-01-15T10:30:00Z"
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: User profile
+          description: User profile data
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+
     patch:
       tags:
         - User
       summary: Update user profile
+      description: |
+        Update user's display name or avatar. Only provided fields are updated.
+
+        **Example request:**
+        ```json
+        {
+          "displayName": "CoolPlayer",
+          "avatar": "https://example.com/avatar.png"
+        }
+        ```
       security:
         - BearerAuth: []
       requestBody:
@@ -294,22 +476,35 @@ paths:
               properties:
                 displayName:
                   type: string
+                  description: New display name
+                  example: "CoolPlayer"
                 avatar:
                   type: string
+                  description: URL to avatar image
+                  example: "https://example.com/avatar.png"
       responses:
         '200':
-          description: Profile updated
+          description: Profile updated successfully
 
   /user/balance:
     get:
       tags:
         - User
       summary: Get user balance
+      description: |
+        Get current virtual currency balance.
+
+        **Example response:**
+        ```json
+        {
+          "balance": 5000.50
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: Current balance
+          description: Current balance in virtual currency
           content:
             application/json:
               schema:
@@ -318,12 +513,26 @@ paths:
                   balance:
                     type: number
                     format: float
+                    example: 5000.50
+                    description: Current balance in virtual dollars
 
   /user/stats:
     get:
       tags:
         - User
       summary: Get user statistics
+      description: |
+        Get user's gameplay statistics including work time, earnings and game results.
+
+        **Example response:**
+        ```json
+        {
+          "totalWorkTime": 7200,
+          "totalEarned": 15000,
+          "totalLost": 8500,
+          "gamesPlayed": 150
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
@@ -336,18 +545,55 @@ paths:
                 properties:
                   totalWorkTime:
                     type: integer
+                    description: Total work time in seconds
+                    example: 7200
                   totalEarned:
                     type: number
+                    description: Total earned from work and game wins
+                    example: 15000
                   totalLost:
                     type: number
+                    description: Total lost in games
+                    example: 8500
                   gamesPlayed:
                     type: integer
+                    description: Total number of games played
+                    example: 150
 
   /user/transactions:
     get:
       tags:
         - User
       summary: Get transaction history
+      description: |
+        Get paginated list of all balance transactions (work earnings, game wins/losses, purchases).
+
+        **Transaction types:**
+        - `work` - earned from work
+        - `game_win` - won in casino game
+        - `game_loss` - lost in casino game
+        - `purchase` - bought item in shop
+        - `sale` - sold item
+
+        **Example response:**
+        ```json
+        [
+          {
+            "id": 100,
+            "type": "game_win",
+            "amount": 500,
+            "description": "Roulette win",
+            "created_at": "2024-01-20T15:30:00Z"
+          },
+          {
+            "id": 99,
+            "type": "work",
+            "amount": 500,
+            "description": "Office work completed",
+            "created_at": "2024-01-20T15:00:00Z"
+          }
+        ]
+        ```
       security:
         - BearerAuth: []
       parameters:
@@ -356,14 +602,17 @@ paths:
           schema:
             type: integer
             default: 20
+            maximum: 100
+          description: Number of transactions to return (max 100)
         - name: offset
           in: query
           schema:
             type: integer
             default: 0
+          description: Number of transactions to skip (for pagination)
       responses:
         '200':
-          description: Transaction list
+          description: List of transactions, newest first
           content:
             application/json:
               schema:
@@ -376,11 +625,32 @@ paths:
       tags:
         - User
       summary: Get user's purchased items
+      description: |
+        Get list of all items owned by user (clothing, cars, houses, accessories).
+
+        **Example response:**
+        ```json
+        [
+          {
+            "id": 1,
+            "item": {
+              "id": 5,
+              "name": "Business Suit",
+              "type": "clothing",
+              "rarity": "common",
+              "price": 500
+            },
+            "equipped": true,
+            "purchase_price": 500,
+            "purchased_at": "2024-01-15T10:30:00Z"
+          }
+        ]
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: User items
+          description: List of user's items with equipment status
           content:
             application/json:
               schema:
@@ -394,14 +664,46 @@ paths:
         - Work
       summary: Start work session
       description: |
-        Start a work session with selected job type. Different jobs have different requirements and rewards:
-        - office: Standard office job, requires clothing item ($500)
-        - courier: Delivery work, requires Courier Uniform, +$250 with car ($500-$750)
-        - lab_rat: Be a test subject, receive random mutation ($500)
-        - stunt_driver: High-risk stunts, requires car, car gets broken ($1500)
-        - drug_dealer: Risky business, 8 year jail sentence ($2000)
-        - streamer: Stream online, lottery rewards (70% $0, 29% $1, 1% $10000)
-        - bottle_collector: Collect bottles, always available ($100)
+        Start a work session with selected job type. Work sessions last 3 minutes.
+
+        **Job types and rewards:**
+        | Job | Reward | Requirements | Special |
+        |-----|--------|--------------|---------|
+        | `office` | $500 | Any clothing | - |
+        | `courier` | $500-750 | Courier Uniform | +$250 if own car |
+        | `lab_rat` | $500 | None | Random mutation |
+        | `stunt_driver` | $1500 | Car | Car breaks after |
+        | `drug_dealer` | $2000 | None | 8 year jail sentence |
+        | `streamer` | $0-10000 | None | 70%=$0, 29%=$1, 1%=$10k |
+        | `bottle_collector` | $100 | None | Always available |
+
+        **Example request:**
+        ```json
+        {
+          "job_type": "office"
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "id": 15,
+            "job_type": "office",
+            "start_time": "2024-01-20T15:00:00Z",
+            "duration": 180,
+            "completed": false
+          },
+          "message": "work session started successfully"
+        }
+        ```
+
+        **Error codes (400):**
+        - `office_no_clothes` - need clothing for office job
+        - `courier_no_uniform` - need Courier Uniform
+        - `stunt_driver_no_car` - need car for stunts
+        - `work session already in progress` - finish current work first
       security:
         - BearerAuth: []
       requestBody:
@@ -415,6 +717,7 @@ paths:
                   enum: [office, courier, lab_rat, stunt_driver, drug_dealer, streamer, bottle_collector]
                   default: office
                   description: Type of job to work
+                  example: "office"
       responses:
         '200':
           description: Work session started
@@ -425,65 +728,159 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   data:
                     $ref: '#/components/schemas/WorkSession'
                   message:
                     type: string
+                    example: "work session started successfully"
         '400':
           description: Already working or job requirements not met
         '403':
-          description: Burnout (multi-tab cheating detected)
+          description: Burnout - detected multi-tab cheating, wait before working again
 
   /work/status:
     get:
       tags:
         - Work
       summary: Get current work status
+      description: |
+        Check if user is currently working and how much time remains.
+
+        **Example response (working):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "is_working": true,
+            "time_remaining": 120,
+            "session": {
+              "id": 15,
+              "job_type": "office",
+              "start_time": "2024-01-20T15:00:00Z"
+            }
+          }
+        }
+        ```
+
+        **Example response (not working):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "is_working": false,
+            "time_remaining": 0,
+            "session": null
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: Work status
+          description: Current work status
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  isWorking:
+                  success:
                     type: boolean
-                  timeRemaining:
-                    type: integer
-                  session:
-                    $ref: '#/components/schemas/WorkSession'
+                  data:
+                    type: object
+                    properties:
+                      is_working:
+                        type: boolean
+                        description: Whether user is currently working
+                      time_remaining:
+                        type: integer
+                        description: Seconds remaining until work complete (0 if not working)
+                      session:
+                        $ref: '#/components/schemas/WorkSession'
 
   /work/complete:
     post:
       tags:
         - Work
       summary: Complete work session
-      description: Complete work and earn $500
+      description: |
+        Complete current work session and receive reward. Can only be called after work time has elapsed.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "earned": 500,
+            "new_balance": 5500,
+            "bonus": null
+          },
+          "message": "work session completed successfully"
+        }
+        ```
+
+        **Error codes:**
+        - `no active work session` - no work in progress
+        - `work not completed yet, X seconds remaining` - wait for timer
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: Work completed
+          description: Work completed, reward received
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  earned:
-                    type: number
-                  newBalance:
-                    type: number
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      earned:
+                        type: number
+                        description: Amount earned from this job
+                        example: 500
+                      new_balance:
+                        type: number
+                        description: User's balance after reward
+                        example: 5500
+                      bonus:
+                        type: string
+                        nullable: true
+                        description: Any special bonus or effect (mutation, jail, etc)
         '400':
-          description: No active work session or not completed yet
+          description: No active work session or work time not elapsed yet
 
   /work/history:
     get:
       tags:
         - Work
       summary: Get work history
+      description: |
+        Get paginated list of completed work sessions.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "sessions": [
+              {
+                "id": 15,
+                "job_type": "office",
+                "start_time": "2024-01-20T15:00:00Z",
+                "end_time": "2024-01-20T15:03:00Z",
+                "duration": 180,
+                "earned": 500,
+                "completed": true
+              }
+            ],
+            "total": 25
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       parameters:
@@ -492,32 +889,17 @@ paths:
           schema:
             type: integer
             default: 50
+            maximum: 100
+          description: Number of sessions to return
         - name: offset
           in: query
           schema:
             type: integer
             default: 0
+          description: Number of sessions to skip (for pagination)
       responses:
         '200':
-          description: Work history
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WorkSession'
-
-  /work/cancel:
-    post:
-      tags:
-        - Work
-      summary: Cancel work session
-      description: Cancel the current work session without receiving reward
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Work session cancelled
+          description: List of work sessions
           content:
             application/json:
               schema:
@@ -525,22 +907,87 @@ paths:
                 properties:
                   success:
                     type: boolean
+                  data:
+                    type: object
+                    properties:
+                      sessions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WorkSession'
+                      total:
+                        type: integer
+                        description: Total number of work sessions
+
+  /work/cancel:
+    post:
+      tags:
+        - Work
+      summary: Cancel work session
+      description: |
+        Cancel current work session. User receives NO reward.
+
+        **Use case:** User wants to switch to different job or stop working.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "message": "work session cancelled successfully"
+        }
+        ```
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Work session cancelled (no reward)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
                   message:
                     type: string
+                    example: "work session cancelled successfully"
         '400':
-          description: No active work session
+          description: No active work session to cancel
 
   /work/jobs:
     get:
       tags:
         - Work
       summary: Get available job types
-      description: Get list of available job types with requirements and rewards
+      description: |
+        Get list of all job types with their requirements, rewards and descriptions.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": [
+            {
+              "type": "office",
+              "name": "Office Worker",
+              "base_reward": 500,
+              "requires": "clothing",
+              "description": "Standard office job. Requires at least one clothing item."
+            },
+            {
+              "type": "bottle_collector",
+              "name": "Bottle Collector",
+              "base_reward": 100,
+              "description": "Collect bottles and cans. Always $100. Available to everyone."
+            }
+          ]
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: List of available jobs
+          description: List of available jobs with requirements
           content:
             application/json:
               schema:
@@ -558,12 +1005,24 @@ paths:
       tags:
         - Work
       summary: Skip jail time
-      description: Skip the jail sentence time (instant release from prison)
+      description: |
+        Instantly release from jail (after drug_dealer job).
+
+        After `drug_dealer` job, user is "jailed" and cannot work for 8 game-years.
+        This endpoint skips that waiting time.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "message": "jail time skipped successfully"
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: Jail time skipped
+          description: Released from jail
           content:
             application/json:
               schema:
@@ -571,8 +1030,10 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   message:
                     type: string
+                    example: "jail time skipped successfully"
         '400':
           description: User is not in jail
 
@@ -660,20 +1121,63 @@ paths:
       tags:
         - Shop
       summary: Get shop items
+      description: |
+        Get list of items available in shop. Can filter by type and rarity.
+
+        **Item types:**
+        - `clothing` - clothes for work (required for office job)
+        - `car` - vehicles (used for courier bonus, stunt job, bank collateral)
+        - `house` - properties (can be used as bank collateral)
+        - `accessory` - decorative items
+
+        **Rarity levels:**
+        - `common` - cheap, basic items
+        - `rare` - mid-tier items
+        - `epic` - expensive, high-quality items
+        - `legendary` - very rare and expensive
+
+        **Example request:**
+        `GET /api/shop/items?type=clothing&rarity=common`
+
+        **Example response:**
+        ```json
+        [
+          {
+            "id": 1,
+            "name": "Business Suit",
+            "description": "Professional office attire",
+            "type": "clothing",
+            "rarity": "common",
+            "price": 500,
+            "image_url": "/images/items/suit.png"
+          },
+          {
+            "id": 2,
+            "name": "Designer Watch",
+            "description": "Luxury timepiece",
+            "type": "accessory",
+            "rarity": "epic",
+            "price": 5000,
+            "image_url": "/images/items/watch.png"
+          }
+        ]
+        ```
       parameters:
         - name: type
           in: query
           schema:
             type: string
             enum: [clothing, car, house, accessory]
+          description: Filter by item type (optional)
         - name: rarity
           in: query
           schema:
             type: string
             enum: [common, rare, epic, legendary]
+          description: Filter by rarity (optional)
       responses:
         '200':
-          description: Shop items
+          description: List of shop items
           content:
             application/json:
               schema:
@@ -686,6 +1190,30 @@ paths:
       tags:
         - Shop
       summary: Buy an item
+      description: |
+        Purchase an item from the shop. Deducts price from user balance.
+
+        **Requirements:**
+        - User must have enough balance
+        - User must not already own this item
+
+        **Example response (success):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "user_item_id": 25,
+            "item": { "id": 1, "name": "Business Suit", "price": 500 },
+            "new_balance": 4500
+          },
+          "message": "Item purchased successfully"
+        }
+        ```
+
+        **Error codes:**
+        - `insufficient_balance` - not enough money
+        - `item_already_owned` - user already has this item
+        - `item_not_found` - invalid itemId
       security:
         - BearerAuth: []
       parameters:
@@ -694,9 +1222,31 @@ paths:
           required: true
           schema:
             type: integer
+          description: ID of item to purchase
+          example: 1
       responses:
         '200':
-          description: Item purchased
+          description: Item purchased successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user_item_id:
+                        type: integer
+                        description: ID of user's item (use for equip/sell)
+                      item:
+                        $ref: '#/components/schemas/Item'
+                      new_balance:
+                        type: number
+                  message:
+                    type: string
         '400':
           description: Insufficient balance or item already owned
 
@@ -705,7 +1255,26 @@ paths:
       tags:
         - Shop
       summary: Sell an item
-      description: Sell item for 50% of purchase price
+      description: |
+        Sell owned item back to shop for **50% of original price**.
+
+        **Note:** Use `userItemId` (from /shop/my-items), not `itemId`.
+
+        **Restrictions:**
+        - Cannot sell item used as loan collateral
+        - Cannot sell equipped items (unequip first)
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "sold_price": 250,
+            "new_balance": 4750
+          },
+          "message": "Item sold successfully"
+        }
+        ```
       security:
         - BearerAuth: []
       parameters:
@@ -714,34 +1283,107 @@ paths:
           required: true
           schema:
             type: integer
+          description: ID of user's item (NOT item ID)
+          example: 25
       responses:
         '200':
-          description: Item sold
+          description: Item sold for 50% of price
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      sold_price:
+                        type: number
+                        description: Amount received (50% of purchase price)
+                      new_balance:
+                        type: number
         '404':
-          description: Item not found
+          description: Item not found or not owned by user
+        '400':
+          description: Cannot sell - item is collateral or equipped
 
   /shop/my-items:
     get:
       tags:
         - Shop
       summary: Get user's items
+      description: |
+        Get list of all items owned by current user.
+
+        **Response includes:**
+        - Item details (name, type, rarity, price)
+        - Whether item is equipped
+        - Whether item is used as loan collateral
+        - Purchase date
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": [
+            {
+              "id": 25,
+              "item": {
+                "id": 1,
+                "name": "Business Suit",
+                "type": "clothing",
+                "rarity": "common",
+                "price": 500
+              },
+              "equipped": true,
+              "is_collateral": false,
+              "purchased_at": "2024-01-15T10:30:00Z"
+            }
+          ]
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: User's items
+          description: List of user's owned items
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserItem'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserItem'
 
   /shop/equip/{userItemId}:
     post:
       tags:
         - Shop
-      summary: Equip an item
+      summary: Equip/unequip an item
+      description: |
+        Toggle item equipped status. Equipped items are "active" (e.g., clothing counts for office job).
+
+        **Effect of equipped items:**
+        - Clothing: required for office work
+        - Car: bonus for courier job
+        - House: no gameplay effect (cosmetic)
+        - Accessory: no gameplay effect (cosmetic)
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "equipped": true
+          },
+          "message": "Item equipped"
+        }
+        ```
       security:
         - BearerAuth: []
       parameters:
@@ -750,15 +1392,76 @@ paths:
           required: true
           schema:
             type: integer
+          description: ID of user's item to equip/unequip
+          example: 25
       responses:
         '200':
-          description: Item equipped
+          description: Item equipped/unequipped
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      equipped:
+                        type: boolean
+                        description: New equipped status
+                  message:
+                    type: string
 
   /games/roulette/bet:
     post:
       tags:
         - Games
       summary: Place roulette bet
+      description: |
+        Place a bet on European roulette (0-36).
+
+        **Bet types and payouts:**
+        | Type | Description | Payout |
+        |------|-------------|--------|
+        | `number` | Single number (0-36) | 35:1 |
+        | `red` | Red numbers | 1:1 |
+        | `black` | Black numbers | 1:1 |
+        | `odd` | Odd numbers | 1:1 |
+        | `even` | Even numbers | 1:1 |
+        | `dozen1` | 1-12 | 2:1 |
+        | `dozen2` | 13-24 | 2:1 |
+        | `dozen3` | 25-36 | 2:1 |
+
+        **Example request (number bet):**
+        ```json
+        {
+          "amount": 100,
+          "betType": "number",
+          "value": 17
+        }
+        ```
+
+        **Example request (color bet):**
+        ```json
+        {
+          "amount": 100,
+          "betType": "red"
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "winning_number": 17,
+            "won": true,
+            "payout": 3500,
+            "new_balance": 8500
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       requestBody:
@@ -773,39 +1476,73 @@ paths:
               properties:
                 amount:
                   type: number
+                  description: Bet amount
+                  example: 100
                 betType:
                   type: string
                   enum: [number, red, black, odd, even, dozen1, dozen2, dozen3]
+                  description: Type of bet
+                  example: "red"
                 value:
                   type: integer
-                  description: Required for number bets (0-36)
+                  minimum: 0
+                  maximum: 36
+                  description: Required ONLY for "number" bet type (0-36)
+                  example: 17
       responses:
         '200':
-          description: Bet placed
+          description: Bet result
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  winningNumber:
-                    type: integer
-                  won:
+                  success:
                     type: boolean
-                  payout:
-                    type: number
-                  newBalance:
-                    type: number
+                  data:
+                    type: object
+                    properties:
+                      winning_number:
+                        type: integer
+                        description: The number that came up (0-36)
+                      won:
+                        type: boolean
+                        description: Whether the bet won
+                      payout:
+                        type: number
+                        description: Amount won (0 if lost)
+                      new_balance:
+                        type: number
+        '400':
+          description: Invalid bet or insufficient balance
 
   /games/roulette/history:
     get:
       tags:
         - Games
       summary: Get roulette history
+      description: |
+        Get history of user's roulette bets.
+
+        **Example response:**
+        ```json
+        [
+          {
+            "id": 50,
+            "bet_type": "red",
+            "bet_amount": 100,
+            "winning_number": 5,
+            "won": true,
+            "payout": 200,
+            "created_at": "2024-01-20T15:30:00Z"
+          }
+        ]
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: Roulette history
+          description: List of roulette game results
           content:
             application/json:
               schema:
@@ -818,21 +1555,63 @@ paths:
       tags:
         - Games
       summary: Get recent roulette numbers
+      description: |
+        Get last 20 winning numbers (public, no auth required).
+        Useful for displaying roulette history board.
+
+        **Example response:**
+        ```json
+        [17, 5, 32, 0, 14, 21, 8, 36, 2, 19]
+        ```
       responses:
         '200':
-          description: Recent numbers
+          description: Array of recent winning numbers
           content:
             application/json:
               schema:
                 type: array
                 items:
                   type: integer
+                  minimum: 0
+                  maximum: 36
+                example: [17, 5, 32, 0, 14]
 
   /games/slots/spin:
     post:
       tags:
         - Games
       summary: Spin slots
+      description: |
+        Spin the slot machine. Returns 3x3 grid of symbols.
+
+        **Symbols:** cherry, lemon, orange, plum, bell, bar, seven
+
+        **Winning combinations:** Check /games/slots/payouts for full payout table.
+
+        **Example request:**
+        ```json
+        {
+          "amount": 50
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "reels": [
+              ["cherry", "lemon", "seven"],
+              ["cherry", "cherry", "bar"],
+              ["cherry", "orange", "plum"]
+            ],
+            "won": true,
+            "winning_lines": [{"line": 0, "symbol": "cherry", "count": 3}],
+            "payout": 150,
+            "new_balance": 5100
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       requestBody:
@@ -846,41 +1625,107 @@ paths:
               properties:
                 amount:
                   type: number
+                  description: Bet amount per spin
+                  example: 50
       responses:
         '200':
-          description: Spin result
+          description: Spin result with reel symbols
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  reels:
-                    type: array
-                    items:
-                      type: array
-                      items:
-                        type: string
-                  won:
+                  success:
                     type: boolean
-                  payout:
-                    type: number
-                  newBalance:
-                    type: number
+                  data:
+                    type: object
+                    properties:
+                      reels:
+                        type: array
+                        description: 3x3 grid of symbols
+                        items:
+                          type: array
+                          items:
+                            type: string
+                      won:
+                        type: boolean
+                      payout:
+                        type: number
+                      new_balance:
+                        type: number
 
   /games/slots/payouts:
     get:
       tags:
         - Games
       summary: Get slots payout table
+      description: |
+        Get payout multipliers for all symbol combinations.
+
+        **Example response:**
+        ```json
+        {
+          "payouts": {
+            "seven": {"3": 100, "2": 10},
+            "bar": {"3": 50, "2": 5},
+            "bell": {"3": 25, "2": 3},
+            "cherry": {"3": 10, "2": 2}
+          }
+        }
+        ```
       responses:
         '200':
-          description: Payout table
+          description: Payout table showing multipliers for each symbol
 
   /games/crash/bet:
     post:
       tags:
         - Games
       summary: Place crash bet
+      description: |
+        Bet on crash game. Set target multiplier to auto-cashout.
+
+        **How it works:**
+        1. Multiplier starts at 1.0x and increases
+        2. Game "crashes" at random multiplier
+        3. If crash happens BEFORE your target → you lose
+        4. If crash happens AFTER your target → you win (bet × target)
+
+        **Example request:**
+        ```json
+        {
+          "amount": 100,
+          "cashoutMultiplier": 2.0
+        }
+        ```
+
+        **Example response (win):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "crash_point": 2.45,
+            "cashout_at": 2.0,
+            "won": true,
+            "payout": 200,
+            "new_balance": 5200
+          }
+        }
+        ```
+
+        **Example response (loss):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "crash_point": 1.35,
+            "cashout_at": 2.0,
+            "won": false,
+            "payout": 0,
+            "new_balance": 4900
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       requestBody:
@@ -895,17 +1740,49 @@ paths:
               properties:
                 amount:
                   type: number
+                  description: Bet amount
+                  example: 100
                 cashoutMultiplier:
                   type: number
+                  minimum: 1.01
+                  description: Target multiplier to cash out (min 1.01)
+                  example: 2.0
       responses:
         '200':
-          description: Bet result
+          description: Crash game result
 
   /games/hilo/bet:
     post:
       tags:
         - Games
       summary: Place Hi-Lo bet
+      description: |
+        Guess if next card is higher or lower than current card.
+
+        **Cards:** A=1, 2-10, J=11, Q=12, K=13
+
+        **Example request:**
+        ```json
+        {
+          "amount": 50,
+          "prediction": "higher"
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "current_card": "7H",
+            "next_card": "QS",
+            "prediction": "higher",
+            "won": true,
+            "payout": 100,
+            "new_balance": 5100
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       requestBody:
@@ -920,18 +1797,46 @@ paths:
               properties:
                 amount:
                   type: number
+                  description: Bet amount
+                  example: 50
                 prediction:
                   type: string
                   enum: [higher, lower]
+                  description: Predict if next card is higher or lower
+                  example: "higher"
       responses:
         '200':
-          description: Bet result
+          description: Hi-Lo game result
 
   /games/wheel/spin:
     post:
       tags:
         - Games
       summary: Spin the wheel
+      description: |
+        Spin wheel of fortune. Wheel has segments with different multipliers.
+
+        **Segments:** 1x, 2x, 5x, 10x, 20x (probability decreases with multiplier)
+
+        **Example request:**
+        ```json
+        {
+          "amount": 25
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "segment": "5x",
+            "multiplier": 5,
+            "payout": 125,
+            "new_balance": 5125
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       requestBody:
@@ -945,15 +1850,38 @@ paths:
               properties:
                 amount:
                   type: number
+                  description: Bet amount
+                  example: 25
       responses:
         '200':
-          description: Spin result
+          description: Wheel spin result
 
   /games/history:
     get:
       tags:
         - Game History
       summary: Get game history
+      description: |
+        Get paginated history of all games played.
+
+        **Filter by game type:** roulette, slots, crash, hilo, wheel, blackjack
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": [
+            {
+              "id": 100,
+              "game_type": "roulette",
+              "bet_amount": 100,
+              "payout": 200,
+              "won": true,
+              "created_at": "2024-01-20T15:30:00Z"
+            }
+          ]
+        }
+        ```
       security:
         - BearerAuth: []
       parameters:
@@ -961,19 +1889,24 @@ paths:
           in: query
           schema:
             type: string
+            enum: [roulette, slots, crash, hilo, wheel, blackjack]
+          description: Filter by game type (optional)
         - name: limit
           in: query
           schema:
             type: integer
             default: 20
+            maximum: 100
+          description: Number of results
         - name: offset
           in: query
           schema:
             type: integer
             default: 0
+          description: Pagination offset
       responses:
         '200':
-          description: Game history
+          description: List of game sessions
           content:
             application/json:
               schema:
@@ -986,36 +1919,84 @@ paths:
       tags:
         - Game History
       summary: Get game statistics
+      description: |
+        Get aggregated statistics for all games played by user.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "total_games": 150,
+            "total_wins": 65,
+            "total_losses": 85,
+            "total_wagered": 15000,
+            "total_won": 12500,
+            "net_profit": -2500,
+            "favorite_game": "roulette",
+            "win_rate": 43.3
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: Game statistics
+          description: User's game statistics
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  totalGames:
-                    type: integer
-                  totalWins:
-                    type: integer
-                  totalLosses:
-                    type: integer
-                  favoriteGame:
-                    type: string
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      total_games:
+                        type: integer
+                      total_wins:
+                        type: integer
+                      total_losses:
+                        type: integer
+                      total_wagered:
+                        type: number
+                      total_won:
+                        type: number
+                      net_profit:
+                        type: number
+                      favorite_game:
+                        type: string
+                      win_rate:
+                        type: number
+                        description: Win percentage
 
   /loans/summary:
     get:
       tags:
         - Loans
       summary: Get loan summary
-      description: Get aggregate loan information for the current user
+      description: |
+        Get aggregate information about all user's loans.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "total_debt": 1500.00,
+            "interest_per_second": 0.001,
+            "friends_loan_count": 2,
+            "total_friends_loaned": 500,
+            "active_loans": 3
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: Loan summary
+          description: Loan summary with total debt and interest rate
           content:
             application/json:
               schema:
@@ -1031,12 +2012,33 @@ paths:
       tags:
         - Loans
       summary: Get user loans
-      description: Get all active loans for the current user
+      description: |
+        Get list of all active loans with details.
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "loans": [
+              {
+                "id": 1,
+                "type": "friends",
+                "principal_amount": 500,
+                "remaining_amount": 525.50,
+                "interest_rate": 0.05,
+                "created_at": "2024-01-15T10:00:00Z"
+              }
+            ],
+            "count": 1
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: User loans list
+          description: List of active loans
           content:
             application/json:
               schema:
@@ -1053,13 +2055,65 @@ paths:
                           $ref: '#/components/schemas/Loan'
                       count:
                         type: integer
+                        description: Total number of active loans
 
   /loans/take:
     post:
       tags:
         - Loans
       summary: Take a loan
-      description: Apply for a new loan (friends, bank, or microcredit)
+      description: |
+        Apply for a new loan. Different loan types have different terms:
+
+        **Loan types:**
+        | Type | Interest | Max Amount | Requirements |
+        |------|----------|------------|--------------|
+        | `friends` | 5% | $500 | Max 3 loans, 50% chance of refusal |
+        | `bank` | 10% | Item value | Requires collateral (car/house) |
+        | `microcredit` | 50% | $1000 | No limits, high interest |
+
+        **Interest accrues per second** and compounds on remaining debt.
+
+        **Example request (friends loan):**
+        ```json
+        {
+          "amount": 200,
+          "type": "friends"
+        }
+        ```
+
+        **Example request (bank loan with collateral):**
+        ```json
+        {
+          "amount": 5000,
+          "type": "bank",
+          "collateral_item_id": 25
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "loan": {
+              "id": 5,
+              "type": "friends",
+              "principal_amount": 200,
+              "remaining_amount": 200,
+              "interest_rate": 0.05
+            },
+            "new_balance": 5200,
+            "message": "Your friend gave you $200"
+          }
+        }
+        ```
+
+        **Error codes:**
+        - `friends_refused` - friend said no (50% chance)
+        - `friends_limit_reached` - max 3 friends loans
+        - `collateral_required` - bank loan needs item
+        - `insufficient_collateral` - item value too low
       security:
         - BearerAuth: []
       requestBody:
@@ -1075,16 +2129,19 @@ paths:
                 amount:
                   type: number
                   description: Loan amount
+                  example: 500
                 type:
                   type: string
                   enum: [friends, bank, microcredit]
                   description: Loan type
+                  example: "friends"
                 collateral_item_id:
                   type: integer
-                  description: Required for bank loans - item ID to use as collateral
+                  description: Required for bank loans - userItemId of car/house
+                  example: 25
       responses:
         '200':
-          description: Loan approved
+          description: Loan approved and money added to balance
           content:
             application/json:
               schema:
@@ -1102,14 +2159,51 @@ paths:
                       message:
                         type: string
         '400':
-          description: Loan denied (friends_refused, collateral_required, etc.)
+          description: Loan denied - see error message for reason
 
   /loans/repay/{loanId}:
     post:
       tags:
         - Loans
       summary: Repay a loan
-      description: Make a payment towards a loan
+      description: |
+        Make a payment towards a loan. Can pay any amount up to full remaining balance.
+
+        **Note:** Interest continues accruing until loan is fully repaid.
+
+        **Example request:**
+        ```json
+        {
+          "amount": 100
+        }
+        ```
+
+        **Example response (partial payment):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "paid": 100,
+            "remaining": 425.50,
+            "new_balance": 4900
+          },
+          "message": "Partial payment successful"
+        }
+        ```
+
+        **Example response (full repayment):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "paid": 425.50,
+            "remaining": 0,
+            "new_balance": 4474.50,
+            "collateral_returned": true
+          },
+          "message": "Loan fully repaid"
+        }
+        ```
       security:
         - BearerAuth: []
       parameters:
@@ -1118,7 +2212,8 @@ paths:
           required: true
           schema:
             type: integer
-          description: Loan ID to repay
+          description: ID of the loan to repay
+          example: 5
       requestBody:
         required: true
         content:
@@ -1131,6 +2226,7 @@ paths:
                 amount:
                   type: number
                   description: Amount to repay
+                  example: 100
       responses:
         '200':
           description: Repayment successful
@@ -1141,19 +2237,56 @@ paths:
                 properties:
                   success:
                     type: boolean
+                  data:
+                    type: object
+                    properties:
+                      paid:
+                        type: number
+                      remaining:
+                        type: number
+                      new_balance:
+                        type: number
                   message:
                     type: string
         '400':
-          description: Insufficient balance or invalid loan
+          description: Insufficient balance
         '404':
-          description: Loan not found
+          description: Loan not found or already repaid
 
   /loans/bankruptcy-check:
     get:
       tags:
         - Loans
       summary: Check bankruptcy status
-      description: Check if user is bankrupt and handle debt collection
+      description: |
+        Check if user is bankrupt (debt exceeds assets).
+
+        If bankrupt, system may seize collateral items to repay loans.
+
+        **Example response (not bankrupt):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "is_bankrupt": false,
+            "total_debt": 500,
+            "total_assets": 5000
+          }
+        }
+        ```
+
+        **Example response (bankrupt):**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "is_bankrupt": true,
+            "total_debt": 10000,
+            "total_assets": 500,
+            "seized_items": ["Luxury Car", "Beach House"]
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
@@ -1166,18 +2299,39 @@ paths:
                 properties:
                   success:
                     type: boolean
-                  is_bankrupt:
-                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      is_bankrupt:
+                        type: boolean
+                      total_debt:
+                        type: number
+                      total_assets:
+                        type: number
 
   /dev/seed:
     post:
       tags:
         - Dev
       summary: Seed database
-      description: Run database seeding (creates test users and items). Development only.
+      description: |
+        **Development only!** Populates database with test data:
+        - Test users
+        - Shop items (clothing, cars, houses, accessories)
+        - Sample transactions
+
+        **No authentication required.**
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "message": "Database seeded successfully (test users and items created)"
+        }
+        ```
       responses:
         '200':
-          description: Database seeded successfully
+          description: Database seeded
           content:
             application/json:
               schema:
@@ -1185,15 +2339,39 @@ paths:
                 properties:
                   success:
                     type: boolean
+                    example: true
                   message:
                     type: string
+                    example: "Database seeded successfully"
 
   /dev/add-money:
     post:
       tags:
         - Dev
       summary: Add money to user
-      description: Add virtual currency to user balance. Development only.
+      description: |
+        **Development only!** Add virtual currency to user's balance.
+
+        Default amount is $1000 if not specified.
+
+        **Example request:**
+        ```json
+        {
+          "amount": 5000
+        }
+        ```
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "user_id": 1,
+            "new_balance": 10000,
+            "added": 5000
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       requestBody:
@@ -1205,10 +2383,11 @@ paths:
                 amount:
                   type: number
                   default: 1000
-                  description: Amount to add (default 1000)
+                  description: Amount to add (default $1000)
+                  example: 5000
       responses:
         '200':
-          description: Money added
+          description: Money added to balance
           content:
             application/json:
               schema:
@@ -1231,12 +2410,25 @@ paths:
       tags:
         - Dev
       summary: Reset user balance
-      description: Reset user balance to $1000. Development only.
+      description: |
+        **Development only!** Reset user's balance to starting amount ($1000).
+
+        **Example response:**
+        ```json
+        {
+          "success": true,
+          "data": {
+            "user_id": 1,
+            "balance": 1000,
+            "message": "Balance reset to $1000"
+          }
+        }
+        ```
       security:
         - BearerAuth: []
       responses:
         '200':
-          description: Balance reset
+          description: Balance reset to $1000
           content:
             application/json:
               schema:
@@ -1251,6 +2443,7 @@ paths:
                         type: integer
                       balance:
                         type: number
+                        example: 1000
                       message:
                         type: string
 
@@ -1260,6 +2453,12 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: |
+        JWT access token obtained from `/auth/login`, `/auth/register`, or `/auth/google/callback`.
+
+        **Header format**: `Authorization: Bearer <access_token>`
+
+        Token expires after some time. Use `/auth/refresh` with refresh_token to get a new access_token.
 
   schemas:
     User:
