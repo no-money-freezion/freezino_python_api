@@ -5,16 +5,23 @@ from pydantic import BaseModel, EmailStr
 
 app = FastAPI()
 
+
 class UserRegister(BaseModel):
     username: str
     email: EmailStr
     password: str
 
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
 def init_db():
-    conn = sqlite3.connect('freezino.db')
+    conn = sqlite3.connect("freezino.db")
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
@@ -24,7 +31,8 @@ def init_db():
             avatar TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    ''')
+    """
+    )
     conn.commit()
     conn.close()
 
@@ -32,18 +40,64 @@ def init_db():
 init_db()
 
 
+@app.post("/api/auth/login")
+def login_user(user_data: UserLogin):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT * FROM users WHERE email = ?
+        """,
+            (user_data.email,),
+        )
+        user_db = cursor.fetchone()
+        if user_db is None:
+            raise HTTPException(status_code=401, detail="Wrong password/login")
+        password_db = user_db["password_hash"]
+        check_password = user_data.password
+
+        if check_password != password_db:
+            raise HTTPException(status_code=401, detail="Wrong password/login")
+        response = {
+            "success": True,
+            "data": {
+                "user": {
+                    "id": user_db["id"],
+                    "username": user_db["username"],
+                    "email": user_db["email"],
+                    "balance": user_db["balance"],
+                },
+                "access_token": "fake1",
+                "refresh_token": "fake2",
+            },
+        }
+        return response
+    except sqlite3.IntegrityError:
+        raise HTTPException(
+            status_code=400,
+            detail="Login failed",
+        )
+    finally:
+        if "conn" in locals():
+            conn.close()
+
 
 @app.post("/api/auth/register")
 def register_user(user: UserRegister):
     password_to_save = user.password
     try:
-        conn = sqlite3.connect('freezino.db')
+        conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO users (username, email, password_hash, balance)
             VALUES (?, ?, ?, ?)
-        """, (user.username, user.email, password_to_save, 1000.0))
+        """,
+            (user.username, user.email, password_to_save, 1000.0),
+        )
         conn.commit()
         new_user_id = cursor.lastrowid
         response = {
@@ -56,24 +110,23 @@ def register_user(user: UserRegister):
                     "balance": 1000.0,
                 },
                 "access_token": "fake1",
-                "refresh_token": "fake2"
-            }
+                "refresh_token": "fake2",
+            },
         }
         return response
     except sqlite3.IntegrityError:
-        raise HTTPException(status_code=400, detail="Пользователь с таким username или email уже существует")
+        raise HTTPException(
+            status_code=400,
+            detail="Пользователь с таким username или email уже существует",
+        )
     finally:
-        if 'conn' in locals():
+        if "conn" in locals():
             conn.close()
 
 
 @app.get("/api/health")
 def health_status():
-    return {
-        "status": "IT'S ALIVE",
-        "timestamp": datetime.now().isoformat()
-    }
-
+    return {"status": "IT'S ALIVE", "timestamp": datetime.now().isoformat()}
 
 
 # if __name__ == "__main__":
