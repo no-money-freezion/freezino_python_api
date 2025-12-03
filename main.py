@@ -1,9 +1,65 @@
 import sqlite3
-from datetime import datetime
-from fastapi import FastAPI, HTTPException
+from datetime import datetime, timedelta
+from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from pydantic import BaseModel, EmailStr
+from passlib.context import CryptContext
 
 app = FastAPI()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+SECRET_KEY = "secret_key_test"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    conn = sqlite3.connect("freezino.db")
+    conn.row_factory = sqlite3.Row
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        user = cursor.fetchone()
+
+        if user is None:
+            raise credentials_exception
+
+        return user
+    finally:
+        conn.close()
+
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 class UserRegister(BaseModel):
@@ -46,21 +102,20 @@ def login_user(user_data: UserLogin):
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT * FROM users WHERE email = ?
-        """,
-            (user_data.email,),
-        )
+        cursor.execute("SELECT * FROM users WHERE email = ?", (user_data.email,))
         user_db = cursor.fetchone()
-        if user_db is None:
-            raise HTTPException(status_code=401, detail="Wrong password/login")
-        password_db = user_db["password_hash"]
-        check_password = user_data.password
 
-        if check_password != password_db:
-            raise HTTPException(status_code=401, detail="Wrong password/login")
-        response = {
+        # 1. СНАЧАЛА проверяем, есть ли пользователь
+        if user_db is None:
+            raise HTTPException(status_code=401, detail="Неверный логин или пароль")
+
+        # 2. Только ПОТОМ достаем хеш и проверяем его
+        password_hash_from_db = user_db["password_hash"]
+
+        if not verify_password(user_data.password, password_hash_from_db):
+            raise HTTPException(status_code=401, detail="Неверный логин или пароль")
+
+        return {
             "success": True,
             "data": {
                 "user": {
@@ -69,16 +124,15 @@ def login_user(user_data: UserLogin):
                     "email": user_db["email"],
                     "balance": user_db["balance"],
                 },
-                "access_token": "fake1",
+                "access_token": create_access_token(data={"sub": user_data.email}),
                 "refresh_token": "fake2",
             },
         }
-        return response
-    except sqlite3.IntegrityError:
-        raise HTTPException(
-            status_code=400,
-            detail="Login failed",
-        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
     finally:
         if "conn" in locals():
             conn.close()
@@ -86,7 +140,7 @@ def login_user(user_data: UserLogin):
 
 @app.post("/api/auth/register")
 def register_user(user: UserRegister):
-    password_to_save = user.password
+    hashed_password = get_password_hash(user.password)
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -95,12 +149,13 @@ def register_user(user: UserRegister):
             """
             INSERT INTO users (username, email, password_hash, balance)
             VALUES (?, ?, ?, ?)
-        """,
-            (user.username, user.email, password_to_save, 1000.0),
+            """,
+            (user.username, user.email, hashed_password, 1000.0),
         )
         conn.commit()
         new_user_id = cursor.lastrowid
-        response = {
+
+        return {
             "success": True,
             "data": {
                 "user": {
@@ -109,16 +164,18 @@ def register_user(user: UserRegister):
                     "email": user.email,
                     "balance": 1000.0,
                 },
-                "access_token": "fake1",
+                "access_token": create_access_token(data={"sub": user.email}),
                 "refresh_token": "fake2",
             },
         }
-        return response
     except sqlite3.IntegrityError:
         raise HTTPException(
             status_code=400,
             detail="Пользователь с таким username или email уже существует",
         )
+    except Exception as e:
+        print(f"Registration Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
     finally:
         if "conn" in locals():
             conn.close()
@@ -129,8 +186,14 @@ def health_status():
     return {"status": "IT'S ALIVE", "timestamp": datetime.now().isoformat()}
 
 
-# if __name__ == "__main__":
-#     import uvicorn
-#
-#     # Запускаем сервер
-#     uvicorn.run(app, host="0.0.0.0", port=3000)
+@app.get("/api/auth/me")
+def read_users_me(current_user=Depends(get_current_user)):
+    return {
+        "user": {
+            "id": current_user["id"],
+            "username": current_user["username"],
+            "email": current_user["email"],
+            "balance": current_user["balance"],
+            "avatar": current_user["avatar"],
+        }
+    }
