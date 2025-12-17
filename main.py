@@ -1,14 +1,47 @@
 import sqlite3
 from datetime import datetime, timedelta
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import JSONResponse
 from jose import JWTError, jwt
-from pydantic import BaseModel, EmailStr
 from passlib.context import CryptContext
+from pydantic import BaseModel, EmailStr
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+@app.middleware("http")
+async def jwt_auth_middleware(request: Request, call_next):
+    public_paths = [
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/health",
+        "/docs",  # Swagger UI
+        "/openapi.json",
+        "/redoc",
+    ]
+    if request.url.path in public_paths:
+        return await call_next(request)
+    response = await call_next(request)
+    return response
+
+
+@app.middleware("http")
+async def global_exception_handler(request: Request, call_next):
+    try:
+        response = await call_next(request)
+        return response
+    except Exception as e:
+        print(f"ERROR at {request.url.path}: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "detail": "Internal Server Error (Something broke, check server logs)",
+            },
+        )
 
 
 SECRET_KEY = "secret_key_test"
@@ -89,6 +122,21 @@ def init_db():
         )
     """
     )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS work_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            job_type TEXT NOT NULL,
+            start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            duration INTEGER NOT NULL,
+            completed BOOLEAN DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """
+    )
+
     conn.commit()
     conn.close()
 
@@ -98,18 +146,16 @@ init_db()
 
 @app.post("/api/auth/login")
 def login_user(user_data: UserLogin):
+    conn = sqlite3.connect("freezino.db")
+    conn.row_factory = sqlite3.Row
     try:
-        conn = sqlite3.connect("freezino.db")
-        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE email = ?", (user_data.email,))
         user_db = cursor.fetchone()
 
-        # 1. СНАЧАЛА проверяем, есть ли пользователь
         if user_db is None:
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
 
-        # 2. Только ПОТОМ достаем хеш и проверяем его
         password_hash_from_db = user_db["password_hash"]
 
         if not verify_password(user_data.password, password_hash_from_db):
@@ -128,22 +174,16 @@ def login_user(user_data: UserLogin):
                 "refresh_token": "fake2",
             },
         }
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"Error: {e}")
-        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
     finally:
-        if "conn" in locals():
-            conn.close()
+        conn.close()
 
 
 @app.post("/api/auth/register")
 def register_user(user: UserRegister):
     hashed_password = get_password_hash(user.password)
+    conn = sqlite3.connect("freezino.db")
+    conn.row_factory = sqlite3.Row
     try:
-        conn = sqlite3.connect("freezino.db")
-        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute(
             """
@@ -173,12 +213,8 @@ def register_user(user: UserRegister):
             status_code=400,
             detail="Пользователь с таким username или email уже существует",
         )
-    except Exception as e:
-        print(f"Registration Error: {e}")
-        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
     finally:
-        if "conn" in locals():
-            conn.close()
+        conn.close()
 
 
 @app.get("/api/health")
