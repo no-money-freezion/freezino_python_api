@@ -343,7 +343,7 @@ def complete_work(current_user=Depends(get_current_user)):
             raise HTTPException(status_code=400, detail="no work session found")
         else:
             check = False
-            earned = 500
+            earned = 500  # Хардкод временно
             new_balance = current_user["balance"] + earned
             duration = rows["duration"]
             work_name = rows["job_type"]
