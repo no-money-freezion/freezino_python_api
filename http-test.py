@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://127.0.0.1:8000/api"
+BASE_URL = "http://127.0.0.1:8005/api"
 
 
 def run_test():
@@ -30,9 +30,13 @@ def run_test():
     work_status = requests.get(
         f"{BASE_URL}/work/status", json=work_data, headers=headers
     )
+    work_check = requests.post(
+        f"{BASE_URL}/work/complete", json=work_data, headers=headers
+    )
     print(f"Статус ответа: {work_response.status_code}")
     print("Тело ответа:", work_response.json())
     print("Рабочий статус юзера:", work_status.json())
+    print("Проверка на завершенность:", work_check.json())
 
 
 if __name__ == "__main__":

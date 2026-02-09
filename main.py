@@ -111,7 +111,7 @@ def init_db():
             user_id INTEGER NOT NULL,
             job_type TEXT NOT NULL,
             start_time TEXT NOT NULL,
-            duration INTEGER DEFAULT 180,
+            duration INTEGER DEFAULT 10,
             completed INTEGER DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
@@ -233,7 +233,7 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
         cursor = conn.cursor()
         time_now = datetime.utcnow()
         time_db = time_now.isoformat()
-        duration = 180
+        duration = 10
         # print(time_db)
         cursor.execute(
             "SELECT user_id FROM work_sessions WHERE user_id = ? AND completed = 0",
@@ -289,29 +289,106 @@ def get_status(current_user=Depends(get_current_user)):
         # print(user_db)
         rows = cursor.fetchone()
         # print(rows)
-        duration = rows["duration"]
-        datePy = datetime.fromisoformat(rows["start_time"])
-        timeCheck = datetime.utcnow() - datePy
-        timeLeft = duration - timeCheck.total_seconds()
-        if timeLeft < 0:
-            timeLeft = 0
-        if rows is not None:
-            # check = True
-            return {
-                "data": {
-                    "is_working": True,
-                    "time_remaining": timeLeft,
-                    "message": f"Hey, work here is not done yet. Time left: {timeLeft} seconds",
-                }
-            }
-        else:
-            # check = False
-            # print(f"No work found")
+
+        if rows is None:
             return {
                 "success": True,
                 "data": {"is_working": False, "time_remaining": 0, "session": 0},
                 "message": f"No work in progress found",
             }
+        else:
+            duration = rows["duration"]
+            work_name = rows["job_type"]
+            datePy = datetime.fromisoformat(rows["start_time"])
+            timeCheck = datetime.utcnow() - datePy
+            timeLeft = duration - timeCheck.total_seconds()
+            if timeLeft < 0:
+                timeLeft = 0
+            return {
+                "data": {
+                    "is_working": True,
+                    "time_remaining": timeLeft,
+                    "message": f"Hey, work here is not done yet. Time left: {timeLeft} seconds",
+                    "session": {
+                        "id": current_user["id"],
+                        "job_type": work_name,
+                        "start_time": datePy,
+                    },
+                }
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.post("/api/work/complete")
+def complete_work(current_user=Depends(get_current_user)):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0 LIMIT 1",
+            (current_user["id"],),
+        )
+        rows = cursor.fetchone()
+        # print(rows["balance"])
+
+        # new_balance = rows["balance"] + earned
+        # print(rows)
+        if rows is None:
+            raise HTTPException(status_code=400, detail="no work session found")
+        else:
+            check = False
+            earned = 500
+            new_balance = current_user["balance"] + earned
+            duration = rows["duration"]
+            work_name = rows["job_type"]
+            datePy = datetime.fromisoformat(rows["start_time"])
+            timeCheck = datetime.utcnow() - datePy
+            timeLeft = duration - timeCheck.total_seconds()
+            if timeLeft < 0:
+                check = True
+                timeLeft = 0
+            if check:
+                cursor.execute(
+                    """
+                        UPDATE users
+                        SET balance = ?
+                        WHERE id = ?
+                        """,
+                    (
+                        new_balance,
+                        current_user["id"],
+                    ),
+                )
+                cursor.execute(
+                    """
+                       UPDATE work_sessions
+                       SET completed = 1
+                       WHERE user_id = ? AND completed = 0
+                        """,
+                    (current_user["id"],),
+                )
+                conn.commit()
+                return {
+                    "success": True,
+                    "data": {
+                        "earned": earned,
+                        "new_balance": new_balance,
+                        "bonus": None,
+                    },
+                    "message": "work session completed successfully",
+                }
+            else:
+                return {
+                    "success": True,
+                    "message": f"Wait {timeLeft} seconds for your reward",
+                }
+
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
