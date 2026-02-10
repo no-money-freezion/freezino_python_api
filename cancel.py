@@ -30,9 +30,9 @@ def run_test():
     work_status = requests.get(
         f"{BASE_URL}/work/status", json=work_data, headers=headers
     )
-    work_check = requests.post(
-        f"{BASE_URL}/work/complete", json=work_data, headers=headers
-    )
+    # work_check = requests.post(
+    #     f"{BASE_URL}/work/complete", json=work_data, headers=headers
+    # )
     work_cancel = requests.post(
         f"{BASE_URL}/work/cancel", json=work_data, headers=headers
     )
@@ -40,10 +40,8 @@ def run_test():
     print(f"Статус ответа: {work_response.status_code}")
     print("Тело ответа:", work_response.json())
     print("Рабочий статус юзера:", work_status.json())
-    print("Проверка на завершенность:", work_check.json())
+    # print("Проверка на завершенность:", work_check.json())
     print("Отмена:", work_cancel.json())
-    print(f"Status Code отмены: {work_cancel.status_code}")
-    # print(f"Тело ответа отмены: {work_cancel.text}")
 
 
 if __name__ == "__main__":
