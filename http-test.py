@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://127.0.0.1:8007/api"
+BASE_URL = "http://127.0.0.1:8002/api"
 
 
 def run_test():
@@ -21,9 +21,9 @@ def run_test():
 
     headers = {"Authorization": f"Bearer {token}"}
 
-    print("\nПопытка начать работу (courier)...")
-    work_data = {"job_type": "courier"}
-
+    print("\nПопытка начать работу (drug_dealer)...")
+    work_data = {"job_type": "drug_dealer"}
+    #
     work_response = requests.post(
         f"{BASE_URL}/work/start", json=work_data, headers=headers
     )
@@ -33,17 +33,20 @@ def run_test():
     work_check = requests.post(
         f"{BASE_URL}/work/complete", json=work_data, headers=headers
     )
-    work_cancel = requests.post(
-        f"{BASE_URL}/work/cancel", json=work_data, headers=headers
-    )
-
+    # work_cancel = requests.post(
+    #     f"{BASE_URL}/work/cancel", json=work_data, headers=headers
+    # )
+    # work_jobs = requests.get(f"{BASE_URL}/work/jobs", json=work_data, headers=headers)
+    # work_skip_jail = requests.post(
+    #     f"{BASE_URL}/work/skip-jail", json=work_data, headers=headers
+    # )
     print(f"Статус ответа: {work_response.status_code}")
     print("Тело ответа:", work_response.json())
     print("Рабочий статус юзера:", work_status.json())
     print("Проверка на завершенность:", work_check.json())
-    print("Отмена:", work_cancel.json())
-    print(f"Status Code отмены: {work_cancel.status_code}")
-    # print(f"Тело ответа отмены: {work_cancel.text}")
+    # print("Отмена:", work_cancel.json())
+    # print(f"Cписок работ: {work_jobs.json()}")
+    # print("Побег из тюрьмы:", work_skip_jail.json())
 
 
 if __name__ == "__main__":

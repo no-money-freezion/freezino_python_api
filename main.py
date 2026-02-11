@@ -1,7 +1,5 @@
 import sqlite3
 from datetime import datetime, timedelta
-
-from black.concurrency import cancel
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -73,6 +71,7 @@ JOB_LIST = {
         "duration": 1,
         "Requirements": "clothing",
         "money_bonus": 0,
+        "punish": None,
         "special": None,
     },
     "courier": {
@@ -81,6 +80,7 @@ JOB_LIST = {
         "duration": 2,
         "requirements": "uniform",
         "money_bonus": 250,
+        "punish": None,
         "special": "+250 reward if own car",
     },
     "lab_rat": {
@@ -89,6 +89,7 @@ JOB_LIST = {
         "duration": 3,
         "requirements": None,
         "money_bonus": 0,
+        "punish": None,
         "special": "Random mutation",
     },
     "stunt_driver": {
@@ -97,6 +98,7 @@ JOB_LIST = {
         "duration": 4,
         "requirements": "car",
         "money_bonus": 0,
+        "punish": None,
         "special": "Car breaks after",
     },
     "drug_dealer": {
@@ -105,7 +107,8 @@ JOB_LIST = {
         "duration": 5,
         "requirements": None,
         "money_bonus": 0,
-        "special": "8 year jail sentence ",
+        "punish": True,
+        "special": "8 year jail sentence",
     },
     "streamer": {
         "depends": True,
@@ -113,6 +116,7 @@ JOB_LIST = {
         "duration": 6,
         "requirements": None,
         "money_bonus": 0,
+        "punish": None,
         "special": "70%=$0, 29%=$1, 1%=$10k",
     },
     "bottle_collector": {
@@ -121,6 +125,7 @@ JOB_LIST = {
         "duration": 7,
         "requirements": None,
         "money_bonus": 0,
+        "punish": None,
         "special": "Always available",
     },
 }
@@ -222,6 +227,7 @@ def init_db():
             start_time TEXT NOT NULL,
             duration INTEGER DEFAULT 0,
             completed INTEGER DEFAULT 0,
+            jailed INTEGER DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     """
@@ -335,16 +341,22 @@ def read_users_me(current_user=Depends(get_current_user)):
 @app.post("/api/work/start")
 def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_user)):
     print(f"Пользователь {current_user['username']} хочет работать {work.job_type}")
-    # print(current_user["id"])
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND jailed = 1 LIMIT 1",
+            (current_user["id"],),
+        )
+        jail_check = cursor.fetchone()
+        if jail_check:
+            raise HTTPException(status_code=400, detail="Go back to jail cell!")
         time_now = datetime.utcnow()
         time_db = time_now.isoformat()
         job = work.job_type.value
         duration = JOB_LIST[job].get("duration")
-        # print(time_db)
         cursor.execute(
             "SELECT user_id FROM work_sessions WHERE user_id = ? AND completed = 0",
             (current_user["id"],),
@@ -359,10 +371,10 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
 
             cursor.execute(
                 """
-            INSERT INTO work_sessions (user_id, job_type, start_time, duration, completed)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO work_sessions (user_id, job_type, start_time, duration, completed, jailed)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-                (current_user["id"], work.job_type.value, time_db, duration, 0),
+                (current_user["id"], work.job_type.value, time_db, duration, 0, 0),
             )
             conn.commit()
             new_session_id = cursor.lastrowid
@@ -374,6 +386,7 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
                 "start_time": time_db,
                 "duration": duration,
                 "completed": 0,
+                "jailed": 0,
             },
             "description": "Work session started",
         }
@@ -413,13 +426,15 @@ def get_status(current_user=Depends(get_current_user)):
             datePy = datetime.fromisoformat(rows["start_time"])
             timeCheck = datetime.utcnow() - datePy
             timeLeft = duration - timeCheck.total_seconds()
+            message = f"Hey, work here is not done yet. Time left: {timeLeft} seconds"
             if timeLeft < 0:
+                message = "Job done!"
                 timeLeft = 0
             return {
                 "data": {
                     "is_working": True,
                     "time_remaining": timeLeft,
-                    "message": f"Hey, work here is not done yet. Time left: {timeLeft} seconds",
+                    "message": message,
                     "session": {
                         "id": current_user["id"],
                         "job_type": work_name,
@@ -450,8 +465,9 @@ def complete_work(current_user=Depends(get_current_user)):
             raise HTTPException(status_code=400, detail="no work session found")
         else:
             check = False
-            bonus = None
+            bonus = 0
             message_bonus = None
+            message_jail = None
             duration = rows["duration"]
             work_name = rows["job_type"]
             job_info = JOB_LIST[work_name]
@@ -459,6 +475,7 @@ def complete_work(current_user=Depends(get_current_user)):
             date_py = datetime.fromisoformat(rows["start_time"])
             time_check = datetime.utcnow() - date_py
             time_left = duration - time_check.total_seconds()
+
             if job_info.get("depends") and job_info.get("money_bonus") > 0:
                 message_bonus = "No bonus for you"
                 bonus = job_info.get("money_bonus")
@@ -486,16 +503,26 @@ def complete_work(current_user=Depends(get_current_user)):
                     (current_user["id"],),
                 )
                 new_balance = earned + current_user["balance"]
+                if job_info.get("punish"):
+                    cursor.execute(
+                        """
+                            UPDATE work_sessions SET jailed = 1 WHERE user_id = ? AND completed = 1
+                            """,
+                        (current_user["id"],),
+                    )
+                    message_jail = "You are going to Jail for 8 game-years, and cant start work anymore"
+
                 conn.commit()
                 return {
                     "success": True,
                     "data": {
-                        "earned": earned + bonus,
+                        "earned": earned,
                         "new_balance": new_balance + bonus,
                         "bonus": bonus,
                     },
                     "message": "work session completed successfully",
                     "message_bonus": message_bonus,
+                    "message_jail": message_jail,
                 }
             else:
                 return {
@@ -535,6 +562,49 @@ def cancel(current_user=Depends(get_current_user)):
             return {
                 "success": True,
                 "message": "work session cancelled successfully",
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/api/work/jobs")
+def get_work_jobs():
+    return JOB_LIST
+
+
+@app.post("/api/work/skip-jail")
+def skip_jail(current_user=Depends(get_current_user)):  # Скип пока в разработке
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 1 AND jailed = 1 ",
+            (current_user["id"],),
+        )
+        jail_row = cursor.fetchone()
+        if jail_row:
+            cursor.execute(
+                "UPDATE work_sessions SET jailed = 0 WHERE user_id = ? AND completed = 1",
+                (current_user["id"],),
+            )
+            conn.commit()
+            rows = cursor.rowcount
+            if rows == 0:
+                raise HTTPException(status_code=400, detail="No jail found")
+            else:
+                return {
+                    "success": True,
+                    "message_jail": "Jail skipped",
+                }
+        else:
+            return {
+                "success": True,
+                "message_jail": "User is not jailed",
             }
     except Exception as e:
         print(f"Error: {e}")

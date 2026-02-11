@@ -32,6 +32,7 @@ def reset_database():
             start_time TEXT NOT NULL,
             duration INTEGER DEFAULT 180,
             completed INTEGER DEFAULT 0,
+            jailed INTEGER DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     """
