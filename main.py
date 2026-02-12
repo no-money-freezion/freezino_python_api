@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel, EmailStr
 from passlib.context import CryptContext
+from enum import Enum
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -14,6 +15,120 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "secret_key_test"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+ITEM_LIST = {
+    "Business Suit": {
+        "id": 1,
+        "cost": 100,
+        "status": True,
+        "breakable": False,
+        "type": "clothing",
+        "rarity": "common",
+        "description": "Professional office attire",
+    },
+    "Designer Watch": {
+        "id": 2,
+        "cost": 110,
+        "status": True,
+        "breakable": False,
+        "type": "accessory",
+        "rarity": "rare",
+        "description": "Luxury timepiece",
+    },
+    "Nice house": {
+        "id": 3,
+        "cost": 120,
+        "status": True,
+        "breakable": False,
+        "type": "house",
+        "rarity": "epic",
+        "description": "Place to live",
+    },
+    "Toyota Highlander": {
+        "id": 4,
+        "cost": 130,
+        "status": True,
+        "breakable": True,
+        "type": "car",
+        "rarity": "legendary",
+        "description": "Red go faster",
+    },
+    "Uniform": {
+        "id": 4,
+        "cost": 130,
+        "status": True,
+        "breakable": True,
+        "type": "clothing",
+        "rarity": "epic",
+        "description": "Courier Uniform, yes",
+    },
+}
+JOB_LIST = {
+    "office": {
+        "depends": False,
+        "reward": 500,
+        "duration": 1,
+        "Requirements": "clothing",
+        "money_bonus": 0,
+        "punish": None,
+        "special": None,
+    },
+    "courier": {
+        "depends": True,
+        "reward": 500,
+        "duration": 2,
+        "requirements": "uniform",
+        "money_bonus": 250,
+        "punish": None,
+        "special": "+250 reward if own car",
+    },
+    "lab_rat": {
+        "depends": False,
+        "reward": 500,
+        "duration": 3,
+        "requirements": None,
+        "money_bonus": 0,
+        "punish": None,
+        "special": "Random mutation",
+    },
+    "stunt_driver": {
+        "depends": False,
+        "reward": 1500,
+        "duration": 4,
+        "requirements": "car",
+        "money_bonus": 0,
+        "punish": None,
+        "special": "Car breaks after",
+    },
+    "drug_dealer": {
+        "depends": False,
+        "reward": 2000,
+        "duration": 5,
+        "requirements": None,
+        "money_bonus": 0,
+        "punish": True,
+        "special": "8 year jail sentence",
+    },
+    "streamer": {
+        "depends": True,
+        "reward": 0,
+        "duration": 6,
+        "requirements": None,
+        "money_bonus": 0,
+        "punish": None,
+        "special": "70%=$0, 29%=$1, 1%=$10k",
+    },
+    "bottle_collector": {
+        "depends": False,
+        "reward": 100,
+        "duration": 7,
+        "requirements": None,
+        "money_bonus": 0,
+        "punish": None,
+        "special": "Always available",
+    },
+}
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -73,6 +188,20 @@ class UserLogin(BaseModel):
     password: str
 
 
+class JobTypeEnum(str, Enum):
+    office = "office"
+    courier = "courier"
+    lab_rat = "lab_rat"
+    stunt_driver = "stunt_driver"
+    drug_dealer = "drug_dealer"
+    streamer = "streamer"
+    bottle_collector = "bottle_collector"
+
+
+class WorkStartRequest(BaseModel):
+    job_type: JobTypeEnum
+
+
 def init_db():
     conn = sqlite3.connect("freezino.db")
     cursor = conn.cursor()
@@ -85,7 +214,22 @@ def init_db():
             password_hash TEXT NOT NULL,
             balance REAL DEFAULT 0,
             avatar TEXT DEFAULT NULL,
+            total_work_time INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS work_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            job_type TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            duration INTEGER DEFAULT 0,
+            completed INTEGER DEFAULT 0,
+            jailed INTEGER DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users (id)
         )
     """
     )
@@ -105,11 +249,9 @@ def login_user(user_data: UserLogin):
         cursor.execute("SELECT * FROM users WHERE email = ?", (user_data.email,))
         user_db = cursor.fetchone()
 
-        # 1. СНАЧАЛА проверяем, есть ли пользователь
         if user_db is None:
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
 
-        # 2. Только ПОТОМ достаем хеш и проверяем его
         password_hash_from_db = user_db["password_hash"]
 
         if not verify_password(user_data.password, password_hash_from_db):
@@ -195,3 +337,349 @@ def read_users_me(current_user=Depends(get_current_user)):
             "avatar": current_user["avatar"],
         }
     }
+
+
+@app.post("/api/work/start")
+def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_user)):
+    print(f"Пользователь {current_user['username']} хочет работать {work.job_type}")
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND jailed = 1 LIMIT 1",
+            (current_user["id"],),
+        )
+        jail_check = cursor.fetchone()
+        if jail_check:
+            raise HTTPException(status_code=400, detail="Go back to jail cell!")
+        time_now = datetime.utcnow()
+        time_db = time_now.isoformat()
+        job = work.job_type.value
+        duration = JOB_LIST[job].get("duration")
+        cursor.execute(
+            "SELECT user_id FROM work_sessions WHERE user_id = ? AND completed = 0",
+            (current_user["id"],),
+        )
+        rows = cursor.fetchone()
+
+        if rows:
+            raise HTTPException(
+                status_code=400, detail="work session already in progress"
+            )
+        else:
+
+            cursor.execute(
+                """
+            INSERT INTO work_sessions (user_id, job_type, start_time, duration, completed, jailed)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+                (current_user["id"], work.job_type.value, time_db, duration, 0, 0),
+            )
+            conn.commit()
+            new_session_id = cursor.lastrowid
+        return {
+            "success": True,
+            "data": {
+                "id": new_session_id,
+                "job_type": work.job_type.value,
+                "start_time": time_db,
+                "duration": duration,
+                "completed": 0,
+                "jailed": 0,
+            },
+            "description": "Work session started",
+        }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/api/work/status")
+def get_status(current_user=Depends(get_current_user)):
+    # print(current_user)
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0",
+            (current_user["id"],),
+        )
+        # user_db = cursor.fetchone()
+        # print(user_db)
+        rows = cursor.fetchone()
+        # print(rows)
+
+        if rows is None:
+            return {
+                "success": True,
+                "data": {"is_working": False, "time_remaining": 0, "session": 0},
+                "message": f"No work in progress found",
+            }
+        else:
+            duration = rows["duration"]
+            work_name = rows["job_type"]
+            datePy = datetime.fromisoformat(rows["start_time"])
+            timeCheck = datetime.utcnow() - datePy
+            timeLeft = duration - timeCheck.total_seconds()
+            message = f"Hey, work here is not done yet. Time left: {timeLeft} seconds"
+            if timeLeft < 0:
+                message = "Job done!"
+                timeLeft = 0
+            return {
+                "data": {
+                    "is_working": True,
+                    "time_remaining": timeLeft,
+                    "message": message,
+                    "session": {
+                        "id": current_user["id"],
+                        "job_type": work_name,
+                        "start_time": datePy,
+                    },
+                }
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.post("/api/work/complete")
+def complete_work(current_user=Depends(get_current_user)):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0 LIMIT 1",
+            (current_user["id"],),
+        )
+        rows = cursor.fetchone()
+        if rows is None:
+            raise HTTPException(status_code=400, detail="no work session found")
+        else:
+            check = False
+            bonus = 0
+            message_bonus = None
+            message_jail = None
+            duration = rows["duration"]
+            work_name = rows["job_type"]
+            job_info = JOB_LIST[work_name]
+            earned = job_info["reward"]
+            date_py = datetime.fromisoformat(rows["start_time"])
+            time_check = datetime.utcnow() - date_py
+            time_left = duration - time_check.total_seconds()
+
+            if job_info.get("depends") and job_info.get("money_bonus") > 0:
+                message_bonus = "No bonus for you"
+                bonus = job_info.get("money_bonus")
+                req_item = job_info["requirements"]
+                message_bonus = f"You have an {req_item}, your bonus is {bonus} dollars"
+            if time_left < 0:
+                check = True
+                time_left = 0
+            if check:
+                cursor.execute(
+                    """
+                        UPDATE users 
+                        SET balance = balance + ? WHERE id = ?
+                        """,
+                    (
+                        earned,
+                        current_user["id"],
+                    ),
+                )
+                conn.commit()
+                cursor.execute(
+                    """
+                        UPDATE users 
+                        SET total_work_time = total_work_time + ? WHERE id = ?
+                        """,
+                    (
+                        duration,
+                        current_user["id"],
+                    ),
+                )
+                conn.commit()
+                cursor.execute(
+                    """
+                       UPDATE work_sessions
+                       SET completed = 1
+                       WHERE user_id = ? AND completed = 0
+                        """,
+                    (current_user["id"],),
+                )
+                conn.commit()
+                new_balance = earned + current_user["balance"]
+                if job_info.get("punish"):
+                    cursor.execute(
+                        """
+                            UPDATE work_sessions SET jailed = 1 WHERE user_id = ? AND completed = 1
+                            """,
+                        (current_user["id"],),
+                    )
+                    message_jail = "You are going to Jail for 8 game-years, and cant start work anymore"
+
+                conn.commit()
+                return {
+                    "success": True,
+                    "data": {
+                        "earned": earned,
+                        "new_balance": new_balance + bonus,
+                        "bonus": bonus,
+                    },
+                    "message": "work session completed successfully",
+                    "message_bonus": message_bonus,
+                    "message_jail": message_jail,
+                }
+            else:
+                return {
+                    "success": True,
+                    "message": f"Wait {time_left} seconds for your reward",
+                }
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.post("/api/work/cancel")
+def cancel(current_user=Depends(get_current_user)):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0 LIMIT 1",
+            (current_user["id"],),
+        )
+        rows = cursor.fetchone()
+        if rows is None:
+            raise HTTPException(status_code=400, detail="No work session found")
+        else:
+            cursor.execute(
+                """
+                    DELETE FROM work_sessions WHERE user_id = ? AND completed = 0
+                    """,
+                (current_user["id"],),
+            )
+            conn.commit()
+            return {
+                "success": True,
+                "message": "work session cancelled successfully",
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/api/work/jobs")
+def get_work_jobs():
+    return JOB_LIST
+
+
+@app.post("/api/work/skip-jail")
+def skip_jail(current_user=Depends(get_current_user)):  # Скип пока в разработке
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 1 AND jailed = 1 ",
+            (current_user["id"],),
+        )
+        jail_row = cursor.fetchone()
+        if jail_row:
+            cursor.execute(
+                "UPDATE work_sessions SET jailed = 0 WHERE user_id = ? AND completed = 1",
+                (current_user["id"],),
+            )
+            conn.commit()
+            rows = cursor.rowcount
+            if rows == 0:
+                raise HTTPException(status_code=400, detail="No jail found")
+            else:
+                return {
+                    "success": True,
+                    "message_jail": "Jail skipped",
+                }
+        else:
+            return {
+                "success": True,
+                "message_jail": "User is not jailed",
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/api/user/profile")
+def get_profile(current_user=Depends(get_current_user)):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users WHERE id = ?",
+            (current_user["id"],),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            raise HTTPException(status_code=400, detail="No user found")
+        else:
+            return {
+                "id": current_user["id"],
+                "username": current_user["username"],
+                "email": current_user["email"],
+                "balance": current_user["balance"],
+                "avatar": current_user["avatar"],
+                "total_work_time": current_user["total_work_time"],
+                "created_at": current_user["created_at"],
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/api/user/balance")
+def get_balance(current_user=Depends(get_current_user)):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users WHERE id = ?",
+            (current_user["id"],),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            raise HTTPException(status_code=400, detail="No user found")
+        else:
+            return {
+                "balance": current_user["balance"],
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
