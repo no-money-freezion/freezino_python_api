@@ -12,13 +12,14 @@ def reset_database():
     cursor = conn.cursor()
     cursor.execute(
         """
-        CREATE TABLE users (
+        CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             balance REAL DEFAULT 0,
             avatar TEXT DEFAULT NULL,
+            total_work_time INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """

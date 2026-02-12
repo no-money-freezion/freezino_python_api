@@ -214,6 +214,7 @@ def init_db():
             password_hash TEXT NOT NULL,
             balance REAL DEFAULT 0,
             avatar TEXT DEFAULT NULL,
+            total_work_time INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """
@@ -487,13 +488,26 @@ def complete_work(current_user=Depends(get_current_user)):
             if check:
                 cursor.execute(
                     """
-                        UPDATE users SET balance = balance + ? WHERE id = ?
+                        UPDATE users 
+                        SET balance = balance + ? WHERE id = ?
                         """,
                     (
                         earned,
                         current_user["id"],
                     ),
                 )
+                conn.commit()
+                cursor.execute(
+                    """
+                        UPDATE users 
+                        SET total_work_time = total_work_time + ? WHERE id = ?
+                        """,
+                    (
+                        duration,
+                        current_user["id"],
+                    ),
+                )
+                conn.commit()
                 cursor.execute(
                     """
                        UPDATE work_sessions
@@ -502,6 +516,7 @@ def complete_work(current_user=Depends(get_current_user)):
                         """,
                     (current_user["id"],),
                 )
+                conn.commit()
                 new_balance = earned + current_user["balance"]
                 if job_info.get("punish"):
                     cursor.execute(
@@ -605,6 +620,62 @@ def skip_jail(current_user=Depends(get_current_user)):  # Скип пока в �
             return {
                 "success": True,
                 "message_jail": "User is not jailed",
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/api/user/profile")
+def get_profile(current_user=Depends(get_current_user)):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users WHERE id = ?",
+            (current_user["id"],),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            raise HTTPException(status_code=400, detail="No user found")
+        else:
+            return {
+                "id": current_user["id"],
+                "username": current_user["username"],
+                "email": current_user["email"],
+                "balance": current_user["balance"],
+                "avatar": current_user["avatar"],
+                "total_work_time": current_user["total_work_time"],
+                "created_at": current_user["created_at"],
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/api/user/balance")
+def get_balance(current_user=Depends(get_current_user)):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users WHERE id = ?",
+            (current_user["id"],),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            raise HTTPException(status_code=400, detail="No user found")
+        else:
+            return {
+                "balance": current_user["balance"],
             }
     except Exception as e:
         print(f"Error: {e}")

@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "http://127.0.0.1:8002/api"
+BASE_URL = "http://127.0.0.1:8003/api"
 
 
 def run_test():
