@@ -20,6 +20,9 @@ def reset_database():
             balance REAL DEFAULT 0,
             avatar TEXT DEFAULT NULL,
             total_work_time INTEGER DEFAULT 0,
+            total_earned INTEGER DEFAULT 0,
+            total_lost INTEGER DEFAULT 0,
+            games_played INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """
@@ -33,6 +36,8 @@ def reset_database():
             start_time TEXT NOT NULL,
             duration INTEGER DEFAULT 180,
             completed INTEGER DEFAULT 0,
+            earned INTEGER DEFAULT 0,
+            end_time TEXT NOT NULL,
             jailed INTEGER DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )

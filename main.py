@@ -215,6 +215,9 @@ def init_db():
             balance REAL DEFAULT 0,
             avatar TEXT DEFAULT NULL,
             total_work_time INTEGER DEFAULT 0,
+            total_earned INTEGER DEFAULT 0,
+            total_lost INTEGER DEFAULT 0,
+            games_played INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """
@@ -228,6 +231,8 @@ def init_db():
             start_time TEXT NOT NULL,
             duration INTEGER DEFAULT 0,
             completed INTEGER DEFAULT 0,
+            earned INTEGER DEFAULT 0,
+            end_time TEXT NOT NULL,
             jailed INTEGER DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
@@ -356,6 +361,7 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
             raise HTTPException(status_code=400, detail="Go back to jail cell!")
         time_now = datetime.utcnow()
         time_db = time_now.isoformat()
+        end_time = 0
         job = work.job_type.value
         duration = JOB_LIST[job].get("duration")
         cursor.execute(
@@ -372,10 +378,19 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
 
             cursor.execute(
                 """
-            INSERT INTO work_sessions (user_id, job_type, start_time, duration, completed, jailed)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO work_sessions (user_id, job_type, start_time, duration, completed, earned, end_time, jailed)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (current_user["id"], work.job_type.value, time_db, duration, 0, 0),
+                (
+                    current_user["id"],
+                    work.job_type.value,
+                    time_db,
+                    duration,
+                    0,
+                    0,
+                    0,
+                    0,
+                ),
             )
             conn.commit()
             new_session_id = cursor.lastrowid
@@ -451,6 +466,63 @@ def get_status(current_user=Depends(get_current_user)):
             conn.close()
 
 
+@app.get("/api/work/history")
+def get_history(
+    limit: int = 20, offset: int = 0, current_user=Depends(get_current_user)
+):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 1 ORDER BY end_time DESC LIMIT ? OFFSET ?",
+            (current_user["id"], limit, offset),
+        )
+        rows = cursor.fetchall()
+        if rows is None:
+            raise HTTPException(
+                status_code=400, detail="Work sessions does not exist for history log"
+            )
+        else:
+            cursor.execute(
+                "SELECT COUNT(*) FROM work_sessions WHERE user_id = ? AND completed = 1",
+                (current_user["id"],),
+            )
+            total = cursor.fetchone()[0]
+            sessions = []
+            for row in rows:
+                sessions.append(
+                    {
+                        "id": row["id"],
+                        "job_type": row["job_type"],
+                        "duration": row["duration"],
+                        "start_time": row["start_time"],
+                        "end_time": row["end_time"],
+                        "earned": row["earned"],
+                        "completed": row["completed"],
+                    }
+                )
+            # id_session = rows["id"]
+            # work_name = rows["job_type"]
+            # duration = rows["duration"]
+            # start_time = datetime.fromisoformat(rows["start_time"])
+            # end_time = rows["end_time"]
+            # earned = rows["earned"]
+            # completed = rows["completed"]
+            return {
+                "data": {
+                    "sessions": sessions,
+                    "total": total,
+                }
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
 @app.post("/api/work/complete")
 def complete_work(current_user=Depends(get_current_user)):
     try:
@@ -476,6 +548,7 @@ def complete_work(current_user=Depends(get_current_user)):
             date_py = datetime.fromisoformat(rows["start_time"])
             time_check = datetime.utcnow() - date_py
             time_left = duration - time_check.total_seconds()
+            end_time = 0
 
             if job_info.get("depends") and job_info.get("money_bonus") > 0:
                 message_bonus = "No bonus for you"
@@ -517,6 +590,44 @@ def complete_work(current_user=Depends(get_current_user)):
                     (current_user["id"],),
                 )
                 conn.commit()
+                cursor.execute(
+                    """
+                       UPDATE work_sessions
+                       SET earned = ?
+                       WHERE user_id = ?
+                        """,
+                    (
+                        earned,
+                        current_user["id"],
+                    ),
+                )
+                conn.commit()
+                end_time = datetime.utcnow()
+                cursor.execute(
+                    """
+                       UPDATE work_sessions
+                       SET end_time = ?
+                       WHERE user_id = ?
+                        """,
+                    (
+                        end_time,
+                        current_user["id"],
+                    ),
+                )
+                conn.commit()
+                total_earned = current_user["total_earned"] + earned
+                cursor.execute(
+                    """
+                       UPDATE users
+                       SET total_earned = total_earned + ? 
+                       WHERE id = ?
+                        """,
+                    (
+                        total_earned,
+                        current_user["id"],
+                    ),
+                )
+                conn.commit()
                 new_balance = earned + current_user["balance"]
                 if job_info.get("punish"):
                     cursor.execute(
@@ -533,6 +644,8 @@ def complete_work(current_user=Depends(get_current_user)):
                     "data": {
                         "earned": earned,
                         "new_balance": new_balance + bonus,
+                        "total_earned": total_earned + earned,
+                        "end_time": end_time,
                         "bonus": bonus,
                     },
                     "message": "work session completed successfully",
@@ -676,6 +789,34 @@ def get_balance(current_user=Depends(get_current_user)):
         else:
             return {
                 "balance": current_user["balance"],
+            }
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/api/user/stats")
+def get_stats(current_user=Depends(get_current_user)):
+    try:
+        conn = sqlite3.connect("freezino.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users WHERE id = ?",
+            (current_user["id"],),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            raise HTTPException(status_code=400, detail="No user found")
+        else:
+            return {
+                "total_work_time": current_user["total_work_time"],
+                "total_earned": current_user["total_earned"],
+                "total_lost": current_user["total_lost"],
+                "games_played": current_user["games_played"],
             }
     except Exception as e:
         print(f"Error: {e}")
