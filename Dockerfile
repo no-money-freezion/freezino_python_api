@@ -82,8 +82,10 @@ RUN mkdir -p /app/data
 
 EXPOSE 3000
 
+# Use 127.0.0.1 explicitly — `localhost` resolves to ::1 in some container
+# /etc/hosts setups, and uvicorn binds only to 0.0.0.0 (IPv4).
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000"]
