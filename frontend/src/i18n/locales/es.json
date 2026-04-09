@@ -1,0 +1,697 @@
+{
+  "common": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "balance": "Balance",
+    "currency": "${{amount}}",
+    "close": "Cerrar",
+    "continue": "Continuar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "loading": "Cargando...",
+    "connecting": "Conectando...",
+    "selling": "Vendiendo...",
+    "tip": "Consejo"
+  },
+  "sound": {
+    "musicOn": "Música Activada",
+    "musicOff": "Música Desactivada",
+    "sfxOn": "Efectos de Sonido Activados",
+    "sfxOff": "Efectos de Sonido Desactivados"
+  },
+  "nav": {
+    "home": "Inicio",
+    "games": "Juegos",
+    "work": "Trabajar",
+    "shop": "Tienda",
+    "profile": "Perfil",
+    "stats": "Estadísticas",
+    "about": "Acerca de",
+    "contact": "Contacto",
+    "terms": "Términos",
+    "privacy": "Privacidad"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido a <1>Freezino</1>",
+    "subtitle": "¡Elige un juego y prueba tu suerte! Juega con dinero virtual de forma segura.",
+    "availableGames": "Juegos Disponibles",
+    "timePlayed": "Tiempo Jugado",
+    "totalWon": "Total Ganado",
+    "casinoGames": "Juegos de Casino",
+    "educationalBanner": {
+      "title": "💡 Recuerda: este es un proyecto educativo",
+      "description": "Estás jugando con dinero virtual. El objetivo es mostrar qué tan rápido puedes perder dinero en un casino."
+    }
+  },
+  "games": {
+    "roulette": {
+      "title": "Ruleta",
+      "description": "Ruleta europea clásica"
+    },
+    "slots": {
+      "title": "Tragamonedas",
+      "description": "Máquina tragamonedas de 5 carretes"
+    },
+    "blackjack": {
+      "title": "Blackjack",
+      "description": "Juego de cartas contra el crupier",
+      "place_bet": "Haz tu Apuesta",
+      "deal": "Repartir",
+      "dealer": "Crupier",
+      "player": "Jugador",
+      "hit": "Pedir",
+      "stand": "Plantarse",
+      "double": "Doblar",
+      "split": "Dividir",
+      "new_game": "Nuevo Juego",
+      "current_bet": "Apuesta Actual",
+      "payout": "Pago",
+      "blackjack": "¡Blackjack!",
+      "you_win": "¡Ganaste!",
+      "dealer_wins": "Crupier Gana",
+      "push": "Empate",
+      "rules": "Reglas",
+      "rule1": "Acércate lo más posible a 21 sin pasarte",
+      "rule2": "Las figuras valen 10, los Ases valen 1 u 11",
+      "rule3": "El crupier debe pedir con 16 o menos, plantarse con 17 o más",
+      "rule4": "Blackjack (21 con las primeras 2 cartas) paga 3:2",
+      "rule5": "Doblar: Duplica tu apuesta y recibe una carta más"
+    },
+    "craps": {
+      "title": "Dados",
+      "description": "Juego de dados clásico"
+    },
+    "crash": {
+      "title": "Crash",
+      "description": "Gráfico con multiplicador creciente"
+    },
+    "hilo": {
+      "title": "Hi-Lo",
+      "description": "Adivina más alto o más bajo"
+    },
+    "wheel": {
+      "title": "Rueda de la Fortuna",
+      "description": "Gira la rueda y gana un premio"
+    },
+    "poker": {
+      "title": "Póker",
+      "description": "Video Póker - 5 cartas"
+    },
+    "comingSoon": "Próximamente",
+    "minBet": "Apuesta Mínima:"
+  },
+  "roulette": {
+    "wheel": "Rueda de Ruleta",
+    "recentNumbers": "Números Recientes",
+    "bettingBoard": "Tablero de Apuestas",
+    "activeBets": "Apuestas Activas",
+    "totalBet": "Apuesta Total",
+    "totalWin": "Ganancia Total",
+    "profit": "Beneficio",
+    "clear": "Limpiar Apuestas",
+    "spin": "GIRAR",
+    "spinning": "Girando...",
+    "win": "🎉 ¡Ganaste!",
+    "lose": "❌ Perdiste",
+    "noBets": "¡Por favor, haz al menos una apuesta!",
+    "insufficientBalance": "¡Saldo insuficiente!",
+    "betFailed": "Error al realizar la apuesta",
+    "red": "Rojo",
+    "black": "Negro",
+    "odd": "Impar",
+    "even": "Par"
+  },
+  "slots": {
+    "title": "Máquina Tragamonedas",
+    "balance": "Balance",
+    "showPaytable": "Mostrar Tabla de Pagos",
+    "hidePaytable": "Ocultar Tabla de Pagos",
+    "paytable": "Tabla de Pagos",
+    "paytableInfo": "Gana emparejando 3+ símbolos en cualquiera de las 10 líneas de pago",
+    "selectBet": "Selecciona Apuesta",
+    "spin": "GIRAR",
+    "spinning": "GIRANDO...",
+    "win": "GANASTE",
+    "line": "Línea",
+    "youWon": "¡Ganaste ${{amount}}!",
+    "tryAgain": "¡Inténtalo de nuevo!",
+    "insufficientBalance": "¡Saldo insuficiente!",
+    "error": "Ocurrió un error",
+    "info": "10 líneas de pago • Empareja 3+ símbolos para ganar • Apuestas más altas = ganancias más altas"
+  },
+  "work": {
+    "button": "Trabajar",
+    "title": "Trabajo",
+    "description": "Gana dinero virtual trabajando durante 3 minutos",
+    "startButton": "Comenzar Trabajo",
+    "modalTitle": "Proceso de Trabajo",
+    "modalSubtitle": "Completa el trabajo para ganar dinero",
+    "timeRemaining": "hasta completar",
+    "reward": "Recompensa:",
+    "requires": "Requiere",
+    "bonus": "Bonificación",
+    "penalty": "Penalización",
+    "variable": "Recompensa Variable",
+    "pause": "⏸ Pausa",
+    "resume": "▶️ Reanudar",
+    "cancelButton": "❌ Cancelar",
+    "warning": "⚠️ Pausa para cancelar",
+    "statsTitle": "¡Trabajo Completado!",
+    "statsSubtitle": "Has ganado <1>${{amount}}</1>",
+    "totalSessions": "Total de Sesiones",
+    "totalEarned": "Total Ganado",
+    "totalWorkTime": "Tiempo Total de Trabajo",
+    "comparisonTitle": "📊 Comparación con Salarios Reales",
+    "timeToEarn": "Tiempo para ganar $500:",
+    "inGame": "En el juego: 3 minutos (¡{{times}}x más rápido!)",
+    "hourlyWage": "${{amount}}/hora",
+    "educationalMessage": "⚠️ Recuerda: En la vida real, ganar dinero requiere mucho más tiempo y esfuerzo. El juego es entretenimiento con alto riesgo de pérdidas.",
+    "hours": "{{count}} h",
+    "minutes": "{{count}} min",
+    "hoursAndMinutes": "{{hours}} h {{minutes}} min",
+    "howItWorks": "Cómo funciona",
+    "step1": "Haz clic en el botón \"Trabajar\" cuando tu saldo sea bajo",
+    "step2": "Espera 3 minutos mientras se cuenta el tiempo",
+    "step3": "Recibe $500 después de completar la sesión de trabajo",
+    "educationalTitle": "Propósito Educativo",
+    "educationalText": "Este sistema de trabajo demuestra el valor del tiempo y el dinero. En la vida real, ganar dinero requiere tiempo y esfuerzo significativos. Los juegos de casino muestran qué tan rápido puedes perder lo que trabajaste arduamente para ganar.",
+    "jobs": {
+      "office": {
+        "name": "Trabajador de Oficina",
+        "description": "Trabajo de oficina estándar. Requiere al menos una prenda de ropa."
+      },
+      "courier": {
+        "name": "Mensajero",
+        "description": "Trabajo de entrega. Requiere Uniforme de Mensajero. +$250 con coche propio."
+      },
+      "lab_rat": {
+        "name": "Sujeto de Prueba",
+        "description": "Sé un sujeto de prueba para científico loco. Recibe mutación aleatoria."
+      },
+      "stunt_driver": {
+        "name": "Especialista de Acción",
+        "description": "Acrobacias de alto riesgo. Requiere coche. Gana $1500 pero el coche se rompe."
+      },
+      "drug_dealer": {
+        "name": "Entrega Sorpresa",
+        "description": "Negocio arriesgado. Gana $2000 pero serás atrapado (sentencia de 8 años, omitible)."
+      },
+      "streamer": {
+        "name": "Streamer",
+        "description": "Transmite en línea. 70% = $0, 29% = $1, 1% = $10,000 + te harás viral."
+      },
+      "bottle_collector": {
+        "name": "Recolector de Botellas",
+        "description": "Recoge botellas y latas. Siempre $100. Disponible para todos."
+      }
+    },
+    "requirements": {
+      "clothing": "Cualquier ropa",
+      "courier_uniform": "Uniforme de Mensajero",
+      "car": "Un coche"
+    },
+    "bonuses": {
+      "own_car": "+$250 con coche"
+    },
+    "penalties": {
+      "car_broken": "Coche roto",
+      "jail_8years": "8 años de cárcel"
+    },
+    "rewards": {
+      "random_mutation": "Mutación aleatoria"
+    },
+    "errors": {
+      "office_no_clothes": "¡No puedes trabajar en la oficina desnudo! Compra al menos ropa barata.",
+      "courier_no_uniform": "¡Necesitas un Uniforme de Mensajero para trabajar como mensajero!",
+      "stunt_driver_no_car": "¡Necesitas un coche para ser especialista de acción!",
+      "burnout": "🔥 ¡AGOTAMIENTO! ¡Intentaste trabajar en {{count}} pestañas simultáneamente y te quemaste! Tratamiento médico: -$1000"
+    }
+  },
+  "countries": {
+    "usa": "EE.UU.",
+    "germany": "Alemania",
+    "russia": "Rusia",
+    "india": "India",
+    "china": "China"
+  },
+  "currency": {
+    "format": "${{amount, number}}",
+    "symbol": "$"
+  },
+  "shop": {
+    "title": "Tienda",
+    "subtitle": "Gasta tus dólares virtuales en artículos exclusivos",
+    "yourBalance": "Tu Balance",
+    "loadingItems": "Cargando artículos...",
+    "noItems": "No se encontraron artículos",
+    "tryAdjustFilters": "Intenta ajustar tus filtros",
+    "showing": "Mostrando",
+    "items": "artículos",
+    "filters": "Filtros",
+    "reset": "Reiniciar",
+    "category": "Categoría",
+    "rarity": "Rareza",
+    "all": "Todos",
+    "allRarities": "Todas las Rarezas",
+    "common": "Común",
+    "rare": "Raro",
+    "epic": "Épico",
+    "legendary": "Legendario",
+    "price": "Precio",
+    "buy": "Comprar",
+    "owned": "Comprado",
+    "sellItem": "Vender Artículo",
+    "purchasedFor": "Comprado por",
+    "originalPrice": "Precio Original",
+    "sellPrice": "Precio de Venta",
+    "sellWarning": "Recibirás el 50% del precio original. Esta acción no se puede deshacer.",
+    "confirmSell": "Confirmar Venta",
+    "sell": "Vender",
+    "clothing": "Ropa",
+    "car": "Coches",
+    "house": "Casas",
+    "accessories": "Accesorios",
+    "noMoney": "¡Sin Dinero!",
+    "noMoneyDescription": "Te has quedado sin dinero",
+    "currentBalance": "Balance Actual",
+    "noMoneyWithItems": "¡No tienes dinero para seguir jugando. Puedes vender tus artículos para recuperar dinero!",
+    "noMoneyNoItems": "No tienes dinero ni artículos. ¡Necesitas trabajar para ganar dinero!",
+    "sellItems": "Vender tus Artículos",
+    "sellItemsDescription": "Recupera el 50% del precio original",
+    "workToEarn": "Trabajar para Ganar Dinero",
+    "workDescription": "3 minutos = $500",
+    "noMoneyTip": "Esta es una simulación para mostrar qué tan rápido se puede perder dinero en el juego. En la vida real, nunca apuestes dinero que no puedas permitirte perder.",
+    "confirmPurchase": "Confirmar Compra",
+    "afterPurchase": "Después de la compra",
+    "insufficientBalance": "¡Saldo insuficiente!",
+    "youNeedMore": "Necesitas ${{amount}} más.",
+    "cancel": "Cancelar",
+    "buying": "Comprando...",
+    "buyNow": "Comprar Ahora"
+  },
+  "profile": {
+    "title": "Perfil de {{name}}",
+    "memberSince": "Miembro desde {{date}}",
+    "yourEquipment": "Tu Equipamiento",
+    "statistics": "Estadísticas",
+    "noItems": "Aún no hay Artículos",
+    "noItemsDescription": "¡Visita la tienda para comprar tus primeros artículos!",
+    "equipped": "Equipado",
+    "equip": "Equipar",
+    "purchased": "Comprado",
+    "totalEarned": "Total Ganado",
+    "totalSpent": "Total Gastado",
+    "totalBet": "Total Apostado",
+    "totalWon": "Total Ganado",
+    "netProfit": "Ganancia Neta",
+    "gamesPlayed": "Juegos Jugados",
+    "favoriteGame": "Juego Favorito",
+    "biggestWin": "Mayor Ganancia",
+    "biggestLoss": "Mayor Pérdida",
+    "workTime": "Tiempo de Trabajo",
+    "equipment": {
+      "clothing": "Ropa",
+      "vehicle": "Vehículo",
+      "home": "Casa",
+      "accessories": "Accesorios",
+      "noClothing": "Estás tímidamente envuelto en un cartel publicitario",
+      "noVehicle": "Solo viajas a pie. ¡Saludable!",
+      "noHome": "Vives en una caja de cartón en la calle",
+      "noAccessories": "Sin accesorios elegantes"
+    }
+  },
+  "error": {
+    "500": {
+      "title": "Error Interno del Servidor",
+      "description": "Algo salió mal de nuestra parte. Por favor, inténtalo más tarde."
+    },
+    "503": {
+      "title": "Servicio No Disponible",
+      "description": "El servicio no está disponible temporalmente. Por favor, inténtalo en unos momentos."
+    },
+    "retry": "Intentar de Nuevo",
+    "goHome": "Ir al Inicio"
+  },
+  "offline": {
+    "message": "Actualmente estás sin conexión. Algunas funciones pueden no estar disponibles."
+  },
+  "home": {
+    "title": "¡Bienvenido a Freezino! 🎰",
+    "subtitle": "Simulador de casino educativo para combatir la adicción al juego",
+    "features": {
+      "play": {
+        "title": "Juega",
+        "description": "Más de 10 juegos de casino diferentes con dinero virtual"
+      },
+      "work": {
+        "title": "Trabaja",
+        "description": "Gana dinero virtual trabajando 3 minutos = $500"
+      },
+      "analyze": {
+        "title": "Analiza",
+        "description": "Ve estadísticas y compara con salarios reales"
+      }
+    },
+    "important": {
+      "title": "⚠️ ¡Importante!",
+      "noRealMoney": "❌ NO se permite depositar dinero real",
+      "onlyVirtual": "✅ Solo moneda virtual (pseudo-dólares)",
+      "educational": "🎓 Propósito educativo - demostrar problemas del juego"
+    }
+  },
+  "about": {
+    "title": "ℹ️ Sobre el Proyecto Freezino",
+    "subtitle": "Simulador educativo para combatir la adicción al juego",
+    "mission": {
+      "title": "Nuestra Misión",
+      "subtitle": "Combatir la adicción al juego",
+      "description": "<strong>Freezino</strong> no es un casino ordinario. Es un proyecto educativo creado para demostrar los peligros reales del juego en un entorno seguro. Usamos solo moneda virtual para que los jugadores puedan experimentar de primera mano lo fácil que es perder dinero en un casino, sin arriesgar fondos reales."
+    },
+    "howItWorks": {
+      "title": "Cómo Funciona",
+      "subtitle": "Mecánica del proyecto",
+      "step1": {
+        "title": "Dinero Virtual",
+        "description": "Comienzas con un saldo virtual de 1000 pseudo-dólares. El dinero real <strong>NUNCA</strong> se usa."
+      },
+      "step2": {
+        "title": "Juegos de Casino",
+        "description": "Juega ruleta, tragamonedas, blackjack y otros juegos clásicos. Todos los juegos funcionan con mecánicas realistas para mostrar probabilidades reales de ganar."
+      },
+      "step3": {
+        "title": "Sistema de Trabajo",
+        "description": "¿Sin dinero? Trabaja 3 minutos para ganar $500. Esto simula el tiempo requerido para ganar dinero en la vida real."
+      },
+      "step4": {
+        "title": "Estadísticas y Análisis",
+        "description": "Ve tus estadísticas y compara cuánto tiempo te tomaría ganar la misma cantidad en un trabajo real en diferentes países."
+      }
+    },
+    "features": {
+      "title": "Características Clave",
+      "subtitle": "Lo que nos hace especiales",
+      "f1": {
+        "title": "🎰 Juegos Realistas",
+        "description": "Todos los juegos funcionan con matemáticas y probabilidades de casino reales"
+      },
+      "f2": {
+        "title": "💰 Moneda Virtual",
+        "description": "Sin riesgo de perder dinero real - solo demostración educativa"
+      },
+      "f3": {
+        "title": "⏰ Sistema de Trabajo",
+        "description": "Demuestra el valor del tiempo y el trabajo versus las pérdidas del juego"
+      },
+      "f4": {
+        "title": "📊 Estadísticas",
+        "description": "Análisis detallado de tus sesiones y comparaciones con salarios reales"
+      },
+      "f5": {
+        "title": "🌍 Comparación Internacional",
+        "description": "Compara tus \"ganancias\" con salarios por hora en diferentes países"
+      },
+      "f6": {
+        "title": "🎓 Educativo",
+        "description": "Aprende sobre problemas del juego sin riesgo financiero"
+      }
+    },
+    "warning": {
+      "title": "⚠️ Descargo de Responsabilidad Importante",
+      "text": "Freezino es un proyecto educativo. No fomentamos el juego con dinero real. Si tú o alguien que conoces tiene un problema de juego, por favor busca ayuda profesional.",
+      "helpline": "Línea de ayuda para el juego:",
+      "remember": "Recuerda:",
+      "r1": "La casa siempre gana a largo plazo",
+      "r2": "El juego no es una forma de ganar dinero",
+      "r3": "Nunca apuestes dinero que no puedas permitirte perder",
+      "r4": "El juego solo debe ser entretenimiento, no una fuente de ingresos"
+    }
+  },
+  "gameHistory": {
+    "title": "Historial de Juegos",
+    "subtitle": "Estadísticas detalladas e historial de todos tus juegos",
+    "loading": "Cargando historial de juegos...",
+    "gameNames": {
+      "roulette": "Ruleta",
+      "slots": "Tragamonedas",
+      "blackjack": "Blackjack",
+      "craps": "Dados",
+      "baccara": "Baccarat",
+      "wheel": "Rueda de la Fortuna",
+      "keno": "Keno",
+      "poker": "Póker",
+      "hilo": "Hi-Lo",
+      "crash": "Crash",
+      "bingo": "Bingo",
+      "plinko": "Plinko"
+    },
+    "stats": {
+      "totalGames": "Total de Juegos",
+      "winRate": "Porcentaje de Victorias",
+      "netProfit": "Ganancia Neta",
+      "favoriteGame": "Juego Favorito"
+    },
+    "charts": {
+      "gameDistribution": "Distribución de Juegos",
+      "profitByGame": "Ganancia/Pérdida por Juego",
+      "netProfit": "Ganancia Neta",
+      "winsLosses": "Estadísticas de Victorias y Derrotas",
+      "wins": "Victorias",
+      "losses": "Derrotas"
+    },
+    "filter": {
+      "label": "Filtrar por juego:",
+      "allGames": "Todos los Juegos"
+    },
+    "table": {
+      "date": "Fecha",
+      "game": "Juego",
+      "bet": "Apuesta",
+      "win": "Ganancia",
+      "profit": "Beneficio",
+      "noHistory": "Sin historial de juegos"
+    },
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "page": "Página {{page}}"
+    }
+  },
+  "statsModal": {
+    "title": "Estadísticas de Trabajo",
+    "subtitle": "Comparación con salarios mundiales",
+    "close": "Cerrar",
+    "earned": "Has ganado",
+    "for": "En {{time}}",
+    "comparison": "Comparación con otros países",
+    "toEarn": "Para ganar <strong>${{amount}}</strong>, en otros países necesitarías:",
+    "perHour": "~${{amount}}/hora",
+    "work": "trabajo",
+    "countries": {
+      "us": "EE.UU.",
+      "gb": "Reino Unido",
+      "de": "Alemania",
+      "fr": "Francia",
+      "jp": "Japón",
+      "cn": "China",
+      "ru": "Rusia",
+      "in": "India"
+    },
+    "time": {
+      "minutes": "{{count}} minutos",
+      "hours": "{{count}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min",
+      "days": "{{count}} días",
+      "daysHours": "{{days}} días {{hours}} h",
+      "seconds": "{{count}} seg",
+      "minutesSeconds": "{{minutes}} min {{seconds}} seg"
+    }
+  },
+  "cookies": {
+    "consent": {
+      "title": "Configuración de Cookies",
+      "description": "Usamos cookies para mejorar tu experiencia. Las cookies esenciales son necesarias para la funcionalidad del sitio (autenticación, configuraciones). Las cookies analíticas nos ayudan a entender cómo usas el sitio.",
+      "learnMore": "Más información",
+      "acceptAll": "Aceptar Todas",
+      "onlyEssential": "Solo Esenciales",
+      "rejectAll": "Rechazar Todas"
+    },
+    "settings": {
+      "title": "Configuración de Cookies",
+      "description": "Administra la configuración de cookies para tu experiencia en Freezino. Las cookies esenciales siempre están habilitadas ya que son necesarias para que el sitio funcione.",
+      "learnMore": "Más información sobre cookies",
+      "essential": {
+        "title": "Cookies Esenciales",
+        "description": "Estas cookies son necesarias para la funcionalidad básica del sitio, incluyendo autenticación, configuración de idioma y guardar tus preferencias de cookies. No se pueden desactivar.",
+        "items": {
+          "jwt": "• Token de autenticación JWT",
+          "language": "• Selección de idioma de interfaz",
+          "settings": "• Configuración de cookies"
+        }
+      },
+      "analytics": {
+        "title": "Cookies Analíticas",
+        "description": "Nos ayudan a entender cómo usas el sitio para mejorar tu experiencia. Las estadísticas se recopilan de forma anónima y se usan solo para análisis.",
+        "items": {
+          "pageViews": "• Estadísticas de visitas a páginas",
+          "gamePopularity": "• Análisis de popularidad de juegos",
+          "errorTracking": "• Seguimiento de errores (opcional)"
+        }
+      },
+      "always": "Siempre",
+      "enabled": "Act",
+      "disabled": "Desact",
+      "currentSetting": "Configuración actual:",
+      "allAllowed": "Todas las cookies permitidas",
+      "onlyEssential": "Solo cookies esenciales",
+      "cancel": "Cancelar",
+      "save": "Guardar Configuración"
+    }
+  },
+  "contact": {
+    "title": "Contáctanos",
+    "subtitle": "¿Tienes preguntas? ¡Estamos aquí para ayudar!",
+    "form": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "message": "Mensaje",
+      "submit": "Enviar Mensaje",
+      "success": "¡Mensaje enviado con éxito!",
+      "error": "No se pudo enviar el mensaje. Por favor, inténtalo de nuevo."
+    }
+  },
+  "notFound": {
+    "title": "404 - Página No Encontrada",
+    "description": "La página que buscas no existe.",
+    "goHome": "Ir al Inicio"
+  },
+  "casinoStats": {
+    "title": "Estadísticas del Casino",
+    "subtitle": "Estadísticas globales de todos los jugadores de Freezino",
+    "loading": "Cargando estadísticas...",
+    "noData": "No hay datos para mostrar",
+    "players": "Jugadores",
+    "games": "Juegos",
+    "bets": "Apuestas",
+    "casino": "Casino",
+    "totalPlayers": "Total de Jugadores",
+    "totalGames": "Juegos Jugados",
+    "totalBet": "Total Apostado",
+    "houseProfit": "Ganancia de la Casa",
+    "casinoStats": "Estadísticas del Casino",
+    "totalBetAmount": "Total Apostado",
+    "totalWon": "Total Pagado",
+    "houseEdge": "Ventaja de la Casa",
+    "averageBet": "Apuesta Promedio",
+    "playerProfitability": "Rentabilidad del Jugador",
+    "playersInProfit": "Jugadores con Ganancias",
+    "playersInLoss": "Jugadores con Pérdidas",
+    "playersBreakEven": "Empate",
+    "profitWarning": "¡{{percent}} de los jugadores perdieron dinero!",
+    "gameBreakdown": "Estadísticas por Juego",
+    "game": "Juego",
+    "gamesPlayed": "Juegos Jugados",
+    "topWinners": "Mejores Ganadores",
+    "topLosers": "Mayores Perdedores",
+    "educationalTitle": "Advertencia Importante",
+    "educationalMessage": "Estas estadísticas muestran la realidad del juego: la casa siempre gana. La mayoría de los jugadores pierden dinero. Freezino es un proyecto educativo que muestra lo rápido que puedes perder dinero en un casino. ¡Nunca apuestes con dinero real que no puedas permitirte perder!"
+  },
+  "sidebar": {
+    "games": "Juegos",
+    "games_desc": "Juegos de casino",
+    "shop": "Tienda",
+    "shop_desc": "Comprar artículos",
+    "credit": "Créditos",
+    "credit_desc": "Solicitar un préstamo",
+    "stats": "Estadísticas",
+    "stats_desc": "Ver tus estadísticas",
+    "profile": "Perfil",
+    "profile_desc": "Ver tu perfil",
+    "work": "Trabajo",
+    "work_desc": "Ganar dinero",
+    "playResponsibly": "Juega Responsablemente",
+    "virtualCurrency": "Este juego usa solo moneda virtual"
+  },
+  "footer": {
+    "copyright": "© 2024 Freezino. Proyecto educativo contra la adicción al juego.",
+    "virtualMoneyOnly": "❌ Solo dinero virtual",
+    "noRealBets": "✅ Sin apuestas reales",
+    "about": "Acerca de",
+    "terms": "Términos de Servicio",
+    "privacy": "Política de Privacidad",
+    "cookies": "Política de Cookies",
+    "contact": "Contacto",
+    "cookieSettings": "Configuración de Cookies"
+  },
+  "credit": {
+    "title": "Créditos",
+    "subtitle": "Pide dinero prestado para seguir jugando",
+    "total_debt": "Deuda Total",
+    "losing_per_second": "Perdiendo por segundo",
+    "active_loans": "Préstamos Activos",
+    "apply": "Solicitar",
+    "loan_amount": "Cantidad del Préstamo",
+    "select_collateral": "Seleccionar Garantía",
+    "choose_item": "Elige un artículo...",
+    "collateral_value": "valor de la garantía",
+    "confirm": "Confirmar Préstamo",
+    "cancel": "Cancelar",
+    "processing": "Procesando...",
+    "application": "Solicitud",
+    "borrowed": "Prestado",
+    "remaining": "Restante",
+    "interest": "Interés",
+    "per_second": "Por Segundo",
+    "collateral": "Garantía",
+    "repay": "Pagar",
+    "amount": "Cantidad",
+    "pay": "Pagar",
+    "interest_rate": "Tasa de Interés",
+    "max_amount": "Cantidad Máxima",
+    "max_loans": "Préstamos Máximos",
+    "used": "Usados",
+    "loans": "préstamos",
+    "available_collateral": "Garantía Disponible",
+    "not_required": "No requerido",
+    "instant": "Instantánea",
+    "approval": "Aprobación",
+    "repay_success": "¡Préstamo pagado exitosamente!",
+    "friends": {
+      "title": "Amigos",
+      "description": "Tus amigos pueden prestarte dinero sin intereses"
+    },
+    "bank": {
+      "title": "Banco",
+      "description": "Interés moderado con requisito de garantía",
+      "car_or_house": "Coche o Casa"
+    },
+    "microcredit": {
+      "title": "Microcrédito",
+      "description": "Aprobación instantánea, pero tasas de interés muy altas"
+    },
+    "errors": {
+      "invalid_amount": "Cantidad inválida",
+      "select_collateral": "Por favor selecciona una garantía",
+      "friends_refused": "Tus amigos se niegan a prestarte más dinero",
+      "friends_limit_exceeded": "Has alcanzado la cantidad máxima que tus amigos pueden prestar",
+      "collateral_required": "Los préstamos bancarios requieren garantía",
+      "collateral_not_found": "Artículo de garantía no encontrado",
+      "not_your_item": "Este no es tu artículo",
+      "item_already_collateral": "Este artículo ya está usado como garantía",
+      "collateral_must_be_car_or_house": "Solo coches y casas pueden usarse como garantía",
+      "collateral_insufficient": "El valor de la garantía es insuficiente",
+      "loan_not_found": "Préstamo no encontrado",
+      "not_your_loan": "Este no es tu préstamo",
+      "insufficient_balance": "Saldo insuficiente"
+    }
+  },
+  "bankruptcy": {
+    "title": "¡COBRADORES DE DEUDA!",
+    "message": "¡No pudiste pagar tus deudas!",
+    "money_gone": "Todo tu dinero se ha ido",
+    "debts_cleared": "Todas las deudas están liquidadas",
+    "items_seized": "Todos los artículos han sido confiscados",
+    "fresh_start": "¡Puedes empezar de nuevo, pero ten más cuidado con los préstamos!",
+    "understand": "Entiendo",
+    "warning": "Recuerda: en la vida real, la bancarrota tiene graves consecuencias a largo plazo"
+  }
+}
