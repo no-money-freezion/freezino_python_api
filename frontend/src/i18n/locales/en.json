@@ -1,0 +1,697 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "balance": "Balance",
+    "currency": "${{amount}}",
+    "close": "Close",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "connecting": "Connecting...",
+    "selling": "Selling...",
+    "tip": "Tip"
+  },
+  "sound": {
+    "musicOn": "Music On",
+    "musicOff": "Music Off",
+    "sfxOn": "Sound Effects On",
+    "sfxOff": "Sound Effects Off"
+  },
+  "nav": {
+    "home": "Home",
+    "games": "Games",
+    "work": "Work",
+    "shop": "Shop",
+    "profile": "Profile",
+    "stats": "Statistics",
+    "about": "About",
+    "contact": "Contact",
+    "terms": "Terms",
+    "privacy": "Privacy"
+  },
+  "dashboard": {
+    "welcome": "Welcome to <1>Freezino</1>",
+    "subtitle": "Choose a game and test your luck! Play with virtual money safely.",
+    "availableGames": "Available Games",
+    "timePlayed": "Time Played",
+    "totalWon": "Total Won",
+    "casinoGames": "Casino Games",
+    "educationalBanner": {
+      "title": "💡 Remember: this is an educational project",
+      "description": "You are playing with virtual money. The goal is to show how quickly you can lose money in a casino."
+    }
+  },
+  "games": {
+    "roulette": {
+      "title": "Roulette",
+      "description": "Classic European roulette"
+    },
+    "slots": {
+      "title": "Slots",
+      "description": "One-armed bandit with 5 reels"
+    },
+    "blackjack": {
+      "title": "Blackjack",
+      "description": "Card game against the dealer",
+      "place_bet": "Place Your Bet",
+      "deal": "Deal",
+      "dealer": "Dealer",
+      "player": "Player",
+      "hit": "Hit",
+      "stand": "Stand",
+      "double": "Double",
+      "split": "Split",
+      "new_game": "New Game",
+      "current_bet": "Current Bet",
+      "payout": "Payout",
+      "blackjack": "Blackjack!",
+      "you_win": "You Win!",
+      "dealer_wins": "Dealer Wins",
+      "push": "Push (Tie)",
+      "rules": "Rules",
+      "rule1": "Get as close to 21 without going over",
+      "rule2": "Face cards are worth 10, Aces are 1 or 11",
+      "rule3": "Dealer must hit on 16 or less, stand on 17 or more",
+      "rule4": "Blackjack (21 with first 2 cards) pays 3:2",
+      "rule5": "Double: Double your bet and get one more card"
+    },
+    "craps": {
+      "title": "Craps",
+      "description": "Classic dice game"
+    },
+    "crash": {
+      "title": "Crash",
+      "description": "Graph with growing multiplier"
+    },
+    "hilo": {
+      "title": "Hi-Lo",
+      "description": "Guess higher or lower"
+    },
+    "wheel": {
+      "title": "Wheel of Fortune",
+      "description": "Spin the wheel and win a prize"
+    },
+    "poker": {
+      "title": "Poker",
+      "description": "Video Poker - 5 cards"
+    },
+    "comingSoon": "Coming Soon",
+    "minBet": "Minimum Bet:"
+  },
+  "roulette": {
+    "wheel": "Roulette Wheel",
+    "recentNumbers": "Recent Numbers",
+    "bettingBoard": "Betting Board",
+    "activeBets": "Active Bets",
+    "totalBet": "Total Bet",
+    "totalWin": "Total Win",
+    "profit": "Profit",
+    "clear": "Clear Bets",
+    "spin": "SPIN",
+    "spinning": "Spinning...",
+    "win": "🎉 You Won!",
+    "lose": "❌ You Lost",
+    "noBets": "Please place at least one bet!",
+    "insufficientBalance": "Insufficient balance!",
+    "betFailed": "Failed to place bet",
+    "red": "Red",
+    "black": "Black",
+    "odd": "Odd",
+    "even": "Even"
+  },
+  "slots": {
+    "title": "Slot Machine",
+    "balance": "Balance",
+    "showPaytable": "Show Paytable",
+    "hidePaytable": "Hide Paytable",
+    "paytable": "Paytable",
+    "paytableInfo": "Win by matching 3+ symbols on any of the 10 paylines",
+    "selectBet": "Select Bet",
+    "spin": "SPIN",
+    "spinning": "SPINNING...",
+    "win": "WIN",
+    "line": "Line",
+    "youWon": "You won ${{amount}}!",
+    "tryAgain": "Try again!",
+    "insufficientBalance": "Insufficient balance!",
+    "error": "An error occurred",
+    "info": "10 paylines • Match 3+ symbols to win • Higher bets = higher wins"
+  },
+  "work": {
+    "button": "Work",
+    "title": "Work",
+    "description": "Earn virtual money by working for 3 minutes",
+    "startButton": "Start Work",
+    "modalTitle": "Work Process",
+    "modalSubtitle": "Complete work to earn money",
+    "timeRemaining": "until completion",
+    "reward": "Reward:",
+    "requires": "Requires",
+    "bonus": "Bonus",
+    "penalty": "Penalty",
+    "variable": "Variable Reward",
+    "pause": "⏸ Pause",
+    "resume": "▶️ Resume",
+    "cancelButton": "❌ Cancel",
+    "warning": "⚠️ Pause to cancel",
+    "statsTitle": "Work Completed!",
+    "statsSubtitle": "You earned <1>${{amount}}</1>",
+    "totalSessions": "Total Sessions",
+    "totalEarned": "Total Earned",
+    "totalWorkTime": "Total Work Time",
+    "comparisonTitle": "📊 Comparison with Real Wages",
+    "timeToEarn": "Time to earn $500:",
+    "inGame": "In game: 3 minutes ({{times}}x faster!)",
+    "hourlyWage": "${{amount}}/hour",
+    "educationalMessage": "⚠️ Remember: In real life, earning money requires much more time and effort. Gambling is entertainment with a high risk of losses.",
+    "hours": "{{count}} h",
+    "minutes": "{{count}} min",
+    "hoursAndMinutes": "{{hours}} h {{minutes}} min",
+    "howItWorks": "How it works",
+    "step1": "Click the \"Work\" button when your balance is low",
+    "step2": "Wait for 3 minutes while the timer counts down",
+    "step3": "Receive $500 after completing the work session",
+    "educationalTitle": "Educational Purpose",
+    "educationalText": "This work system demonstrates the value of time and money. In real life, earning money takes significant time and effort. The casino games show how quickly you can lose what you worked hard to earn.",
+    "jobs": {
+      "office": {
+        "name": "Office Worker",
+        "description": "Standard office job. Requires at least one clothing item."
+      },
+      "courier": {
+        "name": "Courier",
+        "description": "Delivery work. Requires Courier Uniform. +$250 with own car."
+      },
+      "lab_rat": {
+        "name": "Lab Test Subject",
+        "description": "Be a test subject for mad scientist. Receive random mutation."
+      },
+      "stunt_driver": {
+        "name": "Stunt Driver",
+        "description": "High-risk stunts. Requires car. Earn $1500 but car gets broken."
+      },
+      "drug_dealer": {
+        "name": "Surprise Delivery",
+        "description": "Risky business. Earn $2000 but you'll be caught (8 year sentence, skippable)."
+      },
+      "streamer": {
+        "name": "Streamer",
+        "description": "Stream online. 70% = $0, 29% = $1, 1% = $10,000 + go viral."
+      },
+      "bottle_collector": {
+        "name": "Bottle Collector",
+        "description": "Collect bottles and cans. Always $100. Available to everyone."
+      }
+    },
+    "requirements": {
+      "clothing": "Any clothing",
+      "courier_uniform": "Courier Uniform",
+      "car": "A car"
+    },
+    "bonuses": {
+      "own_car": "+$250 with car"
+    },
+    "penalties": {
+      "car_broken": "Car broken",
+      "jail_8years": "8 years jail"
+    },
+    "rewards": {
+      "random_mutation": "Random mutation"
+    },
+    "errors": {
+      "office_no_clothes": "You can't work in the office naked! Buy at least some cheap clothes.",
+      "courier_no_uniform": "You need a Courier Uniform to work as a courier!",
+      "stunt_driver_no_car": "You need a car to be a stunt driver!",
+      "burnout": "🔥 BURNOUT! You tried to work in {{count}} tabs simultaneously and burned out! Medical treatment: -$1000"
+    }
+  },
+  "countries": {
+    "usa": "USA",
+    "germany": "Germany",
+    "russia": "Russia",
+    "india": "India",
+    "china": "China"
+  },
+  "currency": {
+    "format": "${{amount, number}}",
+    "symbol": "$"
+  },
+  "shop": {
+    "title": "Shop",
+    "subtitle": "Spend your virtual dollars on exclusive items",
+    "yourBalance": "Your Balance",
+    "loadingItems": "Loading items...",
+    "noItems": "No items found",
+    "tryAdjustFilters": "Try adjusting your filters",
+    "showing": "Showing",
+    "items": "items",
+    "filters": "Filters",
+    "reset": "Reset",
+    "category": "Category",
+    "rarity": "Rarity",
+    "all": "All",
+    "allRarities": "All Rarities",
+    "common": "Common",
+    "rare": "Rare",
+    "epic": "Epic",
+    "legendary": "Legendary",
+    "price": "Price",
+    "buy": "Buy",
+    "owned": "Owned",
+    "sellItem": "Sell Item",
+    "purchasedFor": "Purchased for",
+    "originalPrice": "Original Price",
+    "sellPrice": "Sell Price",
+    "sellWarning": "You will receive 50% of the original price. This action cannot be undone.",
+    "confirmSell": "Confirm Sell",
+    "sell": "Sell",
+    "clothing": "Clothing",
+    "car": "Cars",
+    "house": "Houses",
+    "accessories": "Accessories",
+    "noMoney": "No Money!",
+    "noMoneyDescription": "You have run out of money",
+    "currentBalance": "Current Balance",
+    "noMoneyWithItems": "You have no money to continue playing. You can sell your items to get money back!",
+    "noMoneyNoItems": "You have no money and no items. You need to work to earn money!",
+    "sellItems": "Sell Your Items",
+    "sellItemsDescription": "Get 50% of the original price back",
+    "workToEarn": "Work to Earn Money",
+    "workDescription": "3 minutes = $500",
+    "noMoneyTip": "This is a simulation to show how quickly money can be lost to gambling. In real life, never gamble money you cannot afford to lose.",
+    "confirmPurchase": "Confirm Purchase",
+    "afterPurchase": "After purchase",
+    "insufficientBalance": "Insufficient balance!",
+    "youNeedMore": "You need ${{amount}} more.",
+    "cancel": "Cancel",
+    "buying": "Buying...",
+    "buyNow": "Buy Now"
+  },
+  "profile": {
+    "title": "{{name}}'s Profile",
+    "memberSince": "Member since {{date}}",
+    "yourEquipment": "Your Equipment",
+    "statistics": "Statistics",
+    "noItems": "No Items Yet",
+    "noItemsDescription": "Visit the shop to buy your first items!",
+    "equipped": "Equipped",
+    "equip": "Equip",
+    "purchased": "Purchased",
+    "totalEarned": "Total Earned",
+    "totalSpent": "Total Spent",
+    "totalBet": "Total Bet",
+    "totalWon": "Total Won",
+    "netProfit": "Net Profit",
+    "gamesPlayed": "Games Played",
+    "favoriteGame": "Favorite Game",
+    "biggestWin": "Biggest Win",
+    "biggestLoss": "Biggest Loss",
+    "workTime": "Work Time",
+    "equipment": {
+      "clothing": "Clothing",
+      "vehicle": "Vehicle",
+      "home": "Home",
+      "accessories": "Accessories",
+      "noClothing": "You are shyly wrapped in an advertising poster",
+      "noVehicle": "You only travel on foot. Healthy!",
+      "noHome": "You live in a cardboard box on the street",
+      "noAccessories": "No fancy accessories"
+    }
+  },
+  "error": {
+    "500": {
+      "title": "Internal Server Error",
+      "description": "Something went wrong on our end. Please try again later."
+    },
+    "503": {
+      "title": "Service Unavailable",
+      "description": "The service is temporarily unavailable. Please try again in a few moments."
+    },
+    "retry": "Try Again",
+    "goHome": "Go Home"
+  },
+  "offline": {
+    "message": "You are currently offline. Some features may not be available."
+  },
+  "home": {
+    "title": "Welcome to Freezino! 🎰",
+    "subtitle": "Educational casino simulator to combat gambling addiction",
+    "features": {
+      "play": {
+        "title": "Play",
+        "description": "10+ different casino games with virtual money"
+      },
+      "work": {
+        "title": "Work",
+        "description": "Earn virtual money by working 3 minutes = $500"
+      },
+      "analyze": {
+        "title": "Analyze",
+        "description": "View statistics and compare with real salaries"
+      }
+    },
+    "important": {
+      "title": "⚠️ Important!",
+      "noRealMoney": "❌ NO real money deposits allowed",
+      "onlyVirtual": "✅ Only virtual currency (pseudo-dollars)",
+      "educational": "🎓 Educational purpose - demonstrate gambling problems"
+    }
+  },
+  "about": {
+    "title": "ℹ️ About Freezino Project",
+    "subtitle": "Educational simulator to combat gambling addiction",
+    "mission": {
+      "title": "Our Mission",
+      "subtitle": "Combat gambling addiction",
+      "description": "<strong>Freezino</strong> is not an ordinary casino. It's an educational project created to demonstrate the real dangers of gambling in a safe environment. We use only virtual currency so players can experience firsthand how easy it is to lose money in a casino, without risking real funds."
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Project mechanics",
+      "step1": {
+        "title": "Virtual Money",
+        "description": "You start with a virtual balance of 1000 pseudo-dollars. Real money is <strong>NEVER</strong> used."
+      },
+      "step2": {
+        "title": "Casino Games",
+        "description": "Play roulette, slots, blackjack and other classic games. All games work with realistic mechanics to show real winning odds."
+      },
+      "step3": {
+        "title": "Work System",
+        "description": "Out of money? Work 3 minutes to earn $500. This simulates the time required to earn money in real life."
+      },
+      "step4": {
+        "title": "Statistics & Analysis",
+        "description": "See your statistics and compare how much time it would take to earn the same amount at a real job in different countries."
+      }
+    },
+    "features": {
+      "title": "Key Features",
+      "subtitle": "What makes us special",
+      "f1": {
+        "title": "🎰 Realistic Games",
+        "description": "All games work with real casino mathematics and probabilities"
+      },
+      "f2": {
+        "title": "💰 Virtual Currency",
+        "description": "No risk of losing real money - only educational demonstration"
+      },
+      "f3": {
+        "title": "⏰ Work System",
+        "description": "Demonstrates the value of time and labor versus gambling losses"
+      },
+      "f4": {
+        "title": "📊 Statistics",
+        "description": "Detailed analytics of your sessions and comparisons with real salaries"
+      },
+      "f5": {
+        "title": "🌍 International Comparison",
+        "description": "Compare your \"earnings\" with hourly wages in different countries"
+      },
+      "f6": {
+        "title": "🎓 Educational",
+        "description": "Learn about gambling problems without financial risk"
+      }
+    },
+    "warning": {
+      "title": "⚠️ Important Disclaimer",
+      "text": "Freezino is an educational project. We do not encourage gambling with real money. If you or someone you know has a gambling problem, please seek professional help.",
+      "helpline": "Gambling helpline:",
+      "remember": "Remember:",
+      "r1": "The house always wins in the long run",
+      "r2": "Gambling is not a way to earn money",
+      "r3": "Never bet money you cannot afford to lose",
+      "r4": "Gambling should only be entertainment, not a source of income"
+    }
+  },
+  "gameHistory": {
+    "title": "Game History",
+    "subtitle": "Detailed statistics and history of all your games",
+    "loading": "Loading game history...",
+    "gameNames": {
+      "roulette": "Roulette",
+      "slots": "Slots",
+      "blackjack": "Blackjack",
+      "craps": "Craps",
+      "baccara": "Baccarat",
+      "wheel": "Wheel of Fortune",
+      "keno": "Keno",
+      "poker": "Poker",
+      "hilo": "Hi-Lo",
+      "crash": "Crash",
+      "bingo": "Bingo",
+      "plinko": "Plinko"
+    },
+    "stats": {
+      "totalGames": "Total Games",
+      "winRate": "Win Rate",
+      "netProfit": "Net Profit",
+      "favoriteGame": "Favorite Game"
+    },
+    "charts": {
+      "gameDistribution": "Game Distribution",
+      "profitByGame": "Profit/Loss by Game",
+      "netProfit": "Net Profit",
+      "winsLosses": "Win and Loss Statistics",
+      "wins": "Wins",
+      "losses": "Losses"
+    },
+    "filter": {
+      "label": "Filter by game:",
+      "allGames": "All Games"
+    },
+    "table": {
+      "date": "Date",
+      "game": "Game",
+      "bet": "Bet",
+      "win": "Win",
+      "profit": "Profit",
+      "noHistory": "No game history"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{page}}"
+    }
+  },
+  "statsModal": {
+    "title": "Work Statistics",
+    "subtitle": "Comparison with world salaries",
+    "close": "Close",
+    "earned": "You earned",
+    "for": "For {{time}}",
+    "comparison": "Comparison with other countries",
+    "toEarn": "To earn <strong>${{amount}}</strong>, in other countries you would need:",
+    "perHour": "~${{amount}}/hour",
+    "work": "work",
+    "countries": {
+      "us": "USA",
+      "gb": "United Kingdom",
+      "de": "Germany",
+      "fr": "France",
+      "jp": "Japan",
+      "cn": "China",
+      "ru": "Russia",
+      "in": "India"
+    },
+    "time": {
+      "minutes": "{{count}} minutes",
+      "hours": "{{count}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min",
+      "days": "{{count}} days",
+      "daysHours": "{{days}} days {{hours}} h",
+      "seconds": "{{count}} sec",
+      "minutesSeconds": "{{minutes}} min {{seconds}} sec"
+    }
+  },
+  "cookies": {
+    "consent": {
+      "title": "Cookie Settings",
+      "description": "We use cookies to improve your experience. Essential cookies are needed for site functionality (authentication, settings). Analytics cookies help us understand how you use the site.",
+      "learnMore": "Learn more",
+      "acceptAll": "Accept All",
+      "onlyEssential": "Only Essential",
+      "rejectAll": "Reject All"
+    },
+    "settings": {
+      "title": "Cookie Settings",
+      "description": "Manage cookie settings for your Freezino experience. Essential cookies are always enabled as they are necessary for the site to function.",
+      "learnMore": "Learn more about cookies",
+      "essential": {
+        "title": "Essential Cookies",
+        "description": "These cookies are necessary for basic site functionality, including authentication, language settings, and saving your cookie preferences. They cannot be disabled.",
+        "items": {
+          "jwt": "• JWT authentication token",
+          "language": "• Interface language selection",
+          "settings": "• Cookie settings"
+        }
+      },
+      "analytics": {
+        "title": "Analytics Cookies",
+        "description": "Help us understand how you use the site to improve your experience. Statistics are collected anonymously and used only for analytics.",
+        "items": {
+          "pageViews": "• Page visit statistics",
+          "gamePopularity": "• Game popularity analysis",
+          "errorTracking": "• Error tracking (optional)"
+        }
+      },
+      "always": "Always",
+      "enabled": "On",
+      "disabled": "Off",
+      "currentSetting": "Current setting:",
+      "allAllowed": "All cookies allowed",
+      "onlyEssential": "Only essential cookies",
+      "cancel": "Cancel",
+      "save": "Save Settings"
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Have questions? We're here to help!",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "message": "Message",
+      "submit": "Send Message",
+      "success": "Message sent successfully!",
+      "error": "Failed to send message. Please try again."
+    }
+  },
+  "notFound": {
+    "title": "404 - Page Not Found",
+    "description": "The page you are looking for does not exist.",
+    "goHome": "Go to Home"
+  },
+  "casinoStats": {
+    "title": "Casino Statistics",
+    "subtitle": "Global statistics of all Freezino players",
+    "loading": "Loading statistics...",
+    "noData": "No data to display",
+    "players": "Players",
+    "games": "Games",
+    "bets": "Bets",
+    "casino": "Casino",
+    "totalPlayers": "Total Players",
+    "totalGames": "Games Played",
+    "totalBet": "Total Bet",
+    "houseProfit": "House Profit",
+    "casinoStats": "Casino Statistics",
+    "totalBetAmount": "Total Wagered",
+    "totalWon": "Total Paid Out",
+    "houseEdge": "House Edge",
+    "averageBet": "Average Bet",
+    "playerProfitability": "Player Profitability",
+    "playersInProfit": "Players in Profit",
+    "playersInLoss": "Players in Loss",
+    "playersBreakEven": "Break Even",
+    "profitWarning": "{{percent}} of players lost money!",
+    "gameBreakdown": "Statistics by Game",
+    "game": "Game",
+    "gamesPlayed": "Games Played",
+    "topWinners": "Top Winners",
+    "topLosers": "Top Losers",
+    "educationalTitle": "Important Warning",
+    "educationalMessage": "This statistics shows the reality of gambling: the house always wins. Most players lose money. Freezino is an educational project showing how quickly you can lose money in a casino. Never gamble with real money you cannot afford to lose!"
+  },
+  "sidebar": {
+    "games": "Games",
+    "games_desc": "Casino games",
+    "shop": "Shop",
+    "shop_desc": "Buy items",
+    "credit": "Credits",
+    "credit_desc": "Take a loan",
+    "stats": "Statistics",
+    "stats_desc": "View your stats",
+    "profile": "Profile",
+    "profile_desc": "View your profile",
+    "work": "Work",
+    "work_desc": "Earn money",
+    "playResponsibly": "Play Responsibly",
+    "virtualCurrency": "This game uses only virtual currency"
+  },
+  "footer": {
+    "copyright": "© 2024 Freezino. Educational project against gambling addiction.",
+    "virtualMoneyOnly": "❌ Only virtual money",
+    "noRealBets": "✅ No real bets",
+    "about": "About",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "cookies": "Cookie Policy",
+    "contact": "Contact",
+    "cookieSettings": "Cookie Settings"
+  },
+  "credit": {
+    "title": "Credits",
+    "subtitle": "Borrow money to keep playing",
+    "total_debt": "Total Debt",
+    "losing_per_second": "Losing per second",
+    "active_loans": "Active Loans",
+    "apply": "Apply",
+    "loan_amount": "Loan Amount",
+    "select_collateral": "Select Collateral",
+    "choose_item": "Choose an item...",
+    "collateral_value": "collateral value",
+    "confirm": "Confirm Loan",
+    "cancel": "Cancel",
+    "processing": "Processing...",
+    "application": "Application",
+    "borrowed": "Borrowed",
+    "remaining": "Remaining",
+    "interest": "Interest",
+    "per_second": "Per Second",
+    "collateral": "Collateral",
+    "repay": "Repay",
+    "amount": "Amount",
+    "pay": "Pay",
+    "interest_rate": "Interest Rate",
+    "max_amount": "Max Amount",
+    "max_loans": "Max Loans",
+    "used": "Used",
+    "loans": "loans",
+    "available_collateral": "Available Collateral",
+    "not_required": "Not required",
+    "instant": "Instant",
+    "approval": "Approval",
+    "repay_success": "Loan repaid successfully!",
+    "friends": {
+      "title": "Friends",
+      "description": "Your friends can lend you money interest-free"
+    },
+    "bank": {
+      "title": "Bank",
+      "description": "Moderate interest with collateral requirement",
+      "car_or_house": "Car or House"
+    },
+    "microcredit": {
+      "title": "Microcredit",
+      "description": "Instant approval, but very high interest rates"
+    },
+    "errors": {
+      "invalid_amount": "Invalid amount",
+      "select_collateral": "Please select collateral",
+      "friends_refused": "Your friends refuse to lend you more money",
+      "friends_limit_exceeded": "You've reached the maximum amount friends can lend",
+      "collateral_required": "Bank loans require collateral",
+      "collateral_not_found": "Collateral item not found",
+      "not_your_item": "This is not your item",
+      "item_already_collateral": "This item is already used as collateral",
+      "collateral_must_be_car_or_house": "Only cars and houses can be used as collateral",
+      "collateral_insufficient": "Collateral value is insufficient",
+      "loan_not_found": "Loan not found",
+      "not_your_loan": "This is not your loan",
+      "insufficient_balance": "Insufficient balance"
+    }
+  },
+  "bankruptcy": {
+    "title": "DEBT COLLECTORS!",
+    "message": "You couldn't pay your debts!",
+    "money_gone": "All your money is gone",
+    "debts_cleared": "All debts are cleared",
+    "items_seized": "All items have been seized",
+    "fresh_start": "You can start fresh, but be more careful with loans!",
+    "understand": "I Understand",
+    "warning": "Remember: in real life, bankruptcy has serious long-term consequences"
+  }
+}
