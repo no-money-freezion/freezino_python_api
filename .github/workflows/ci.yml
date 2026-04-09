@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# NOTE: lint + type-check + pytest are deliberately NOT run here until
+# BE-002 ships `pyproject.toml` / `requirements.txt` and BE-009 writes
+# a test foundation. See DO-015 to re-enable those steps once available.
+# For now CI is limited to "does the backend image build and come up
+# healthy" — enough to catch Dockerfile regressions on every PR.
+
+jobs:
+  backend-image:
+    name: Build backend image + healthcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: freezino-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run container and curl /api/health
+        run: |
+          docker run -d --name be-ci -p 3000:3000 freezino-backend:ci
+          # give uvicorn a moment to come up
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://localhost:3000/api/health > /dev/null; then
+              echo "✓ backend is healthy"
+              curl -s http://localhost:3000/api/health
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error ::backend health check failed"
+          docker logs be-ci
+          exit 1
+
+  frontend-image:
+    name: Build frontend image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build frontend image (prod, VITE_API_URL=/api)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: freezino-frontend:ci
+          build-args: |
+            VITE_API_URL=/api
+            VITE_GOOGLE_ENABLED=false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,44 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to freezino.online
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+            cd /opt/freezino_python_api
+            git fetch --all
+            git reset --hard origin/main
+            ./deploy.sh prod
+
+      - name: Health check
+        run: |
+          echo "Waiting 10s for services to stabilize..."
+          sleep 10
+          code=$(curl -s -o /dev/null -w "%{http_code}" https://freezino.online/api/health)
+          if [ "$code" != "200" ]; then
+            echo "::error ::Healthcheck failed: HTTP $code"
+            exit 1
+          fi
+          echo "Health OK (HTTP $code)"
