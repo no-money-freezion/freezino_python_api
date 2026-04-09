@@ -84,8 +84,14 @@ EXPOSE 3000
 
 # Use 127.0.0.1 explicitly — `localhost` resolves to ::1 in some container
 # /etc/hosts setups, and uvicorn binds only to 0.0.0.0 (IPv4).
+#
+# NOTE: we intentionally don't use `wget --spider` here. --spider sends a
+# HEAD request, but main.py only registers @app.get("/api/health"), so
+# FastAPI responds 405 Method Not Allowed and wget exits with code 8
+# ("broken link"). A GET with output discarded is the safe alternative
+# until main.py also handles HEAD (post BE-003).
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
+    CMD wget -q -O /dev/null --tries=1 http://127.0.0.1:3000/api/health || exit 1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000"]
