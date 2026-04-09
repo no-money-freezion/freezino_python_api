@@ -1,0 +1,55 @@
+services:
+  # ---- FastAPI Backend ----
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: freezino-backend:latest
+    container_name: freezino-backend-prod
+    restart: always
+    expose:
+      - "3000"
+    # Published to host on 3000 for PR 1. Once nginx is added in PR 2,
+    # drop this and put nginx in front instead.
+    ports:
+      - "3000:3000"
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Fails loud if SECRET_KEY is unset in .env — intentional.
+      # main.py ignores it right now (BE-006 taboo), but .env already has
+      # the real value so the cutover when BE-006 lands is zero-config.
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      DB_PATH: /app/data/freezino.db
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://freezino.online}
+    volumes:
+      - backend-data:/app/data
+      - backend-logs:/app/logs
+    networks:
+      - freezino-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Frontend and nginx services are added in PR 2 (FE-001 + FE-005).
+
+volumes:
+  backend-data:
+    driver: local
+  backend-logs:
+    driver: local
+
+networks:
+  freezino-network:
+    driver: bridge
