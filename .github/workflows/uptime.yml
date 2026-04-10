@@ -1,0 +1,49 @@
+name: Uptime monitor
+
+# Scheduled external health check for https://freezino.online.
+# Fails the job on non-200 or unexpected body — GitHub Actions then
+# sends a failure notification email to the repo admin by default.
+# No issue filing, no Slack/webhook — keep it simple until there's a
+# real user base to alert about. Tracked in DO-013.
+
+on:
+  schedule:
+    # GH Actions cron uses UTC. Every 10 minutes. GitHub may skip runs
+    # under heavy load — that's fine for a dev-scale project; the next
+    # tick picks up within 10–20 minutes.
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: curl freezino.online/api/health
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: HTTP health check
+        run: |
+          set -u
+          URL="https://freezino.online/api/health"
+          BODY=$(mktemp)
+          code=$(curl -sS -o "$BODY" -w "%{http_code}" --max-time 15 "$URL" || echo "000")
+          echo "GET $URL → HTTP $code"
+          echo "--- body ---"
+          cat "$BODY"
+          echo
+          echo "--- end ---"
+
+          if [ "$code" != "200" ]; then
+            echo "::error title=Uptime check failed::HTTP $code (expected 200)"
+            exit 1
+          fi
+
+          if ! grep -q "IT'S ALIVE" "$BODY"; then
+            echo "::error title=Uptime check failed::body missing 'IT'S ALIVE' signature (Python backend may be down and served by fallback/stale cache)"
+            exit 1
+          fi
+
+          echo "✓ healthy"
