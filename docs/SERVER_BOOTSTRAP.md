@@ -219,7 +219,44 @@ The Go binary + `/opt/freezino/` tree are still on the server for this reason. D
 
 ---
 
-## 10. Optional hardening
+## 10. Daily SQLite backup cron (DO-012)
+
+`scripts/backup-cron.sh` snapshots the live SQLite file out of the backend container into `./backups/` and keeps the last 14 days. It's written to be silent and harmless when called from cron (exits 0 and just logs a `SKIP` line if the container is mid-restart), so an active deploy won't spam you with error mail.
+
+Test it once by hand:
+
+```bash
+cd /opt/freezino_python_api
+./scripts/backup-cron.sh
+ls -la backups/        # freezino-YYYYMMDD-HHMMSS.db + cron.log
+tail -3 backups/cron.log
+```
+
+Install as a daily cron entry at 03:00 local time (the install line is idempotent — re-running it just re-writes the same entry):
+
+```bash
+(crontab -l 2>/dev/null | grep -v 'freezino_python_api.*backup-cron'; \
+ echo "0 3 * * * cd /opt/freezino_python_api && ./scripts/backup-cron.sh") | crontab -
+crontab -l
+```
+
+The snapshot directory and `cron.log` are intentionally **not** committed. Backups stay local to the server — there's no off-site copy (no S3, no rsync elsewhere). For a dev project with no real users that's fine; if that changes, extend the script to upload and add a `RESTIC_REPO` / `rclone` step.
+
+---
+
+## 11. Uptime monitoring (DO-013)
+
+External `/api/health` polling runs from GitHub Actions — no extra service to pay for, no third-party signup. The workflow lives at `.github/workflows/uptime.yml` and ticks every 10 minutes. A failure (non-200 or body missing the `"IT'S ALIVE"` signature) fails the job, which triggers GitHub's default "workflow failed" email notification to the repo admin.
+
+- **Manual run:** `gh workflow run uptime.yml -R no-money-freezion/freezino_python_api`
+- **History:** repo Actions tab → "Uptime monitor"
+- **Alerting:** the workflow itself doesn't file issues or call webhooks. If you need something louder than email (Slack, Telegram, PagerDuty), add an `if: failure()` step to the workflow that posts to whichever endpoint. The extension point is a single extra step, not a redesign.
+
+GitHub Actions cron is best-effort — under heavy load GH may skip individual ticks. A 10-minute interval means the worst-case detection window for downtime is still under ~20 minutes, which is plenty for this project.
+
+---
+
+## 12. Optional hardening
 
 None of this is required to get the site up. Do it when you care about stability.
 
