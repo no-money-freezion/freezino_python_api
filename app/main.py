@@ -334,7 +334,7 @@ def health_status():
 
 
 @app.get("/api/auth/me")
-def read_users_me(current_user: Any = Depends(get_current_user)):  # noqa: B008
+def read_users_me(current_user: Any = Depends(get_current_user)):
     return {
         "user": {
             "id": current_user["id"],
@@ -347,7 +347,7 @@ def read_users_me(current_user: Any = Depends(get_current_user)):  # noqa: B008
 
 
 @app.post("/api/work/start")
-def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_current_user)):  # noqa: B008
+def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_current_user)):
     print(f"Пользователь {current_user['username']} хочет работать {work.job_type}")
     try:
         conn = sqlite3.connect("freezino.db")
@@ -423,7 +423,7 @@ def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_c
 
 
 @app.get("/api/work/status")
-def get_status(current_user: Any = Depends(get_current_user)):  # noqa: B008
+def get_status(current_user: Any = Depends(get_current_user)):
     # print(current_user)
     try:
         conn = sqlite3.connect("freezino.db")
@@ -475,7 +475,7 @@ def get_status(current_user: Any = Depends(get_current_user)):  # noqa: B008
 
 
 @app.get("/api/work/history")
-def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(get_current_user)):  # noqa: B008
+def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -537,7 +537,7 @@ def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(ge
 
 
 @app.post("/api/work/complete")
-def complete_work(current_user: Any = Depends(get_current_user)):  # noqa: B008
+def complete_work(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -683,7 +683,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):  # noqa: B008
 
 
 @app.post("/api/work/cancel")
-def cancel(current_user: Any = Depends(get_current_user)):  # noqa: B008
+def cancel(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -721,7 +721,7 @@ def get_work_jobs():
 
 
 @app.post("/api/work/skip-jail")
-def skip_jail(current_user: Any = Depends(get_current_user)):  # noqa: B008
+def skip_jail(current_user: Any = Depends(get_current_user)):  #  Skip в работе
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -759,7 +759,7 @@ def skip_jail(current_user: Any = Depends(get_current_user)):  # noqa: B008
 
 
 @app.get("/api/user/profile")
-def get_profile(current_user: Any = Depends(get_current_user)):  # noqa: B008
+def get_profile(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -790,7 +790,7 @@ def get_profile(current_user: Any = Depends(get_current_user)):  # noqa: B008
 
 
 @app.get("/api/user/balance")
-def get_balance(current_user: Any = Depends(get_current_user)):  # noqa: B008
+def get_balance(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -815,7 +815,7 @@ def get_balance(current_user: Any = Depends(get_current_user)):  # noqa: B008
 
 
 @app.get("/api/user/stats")
-def get_stats(current_user: Any = Depends(get_current_user)):  # noqa: B008
+def get_stats(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
