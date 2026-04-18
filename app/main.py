@@ -387,6 +387,7 @@ def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_c
                         end_time,
                         jailed
                     )
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                 (
                     current_user["id"],
