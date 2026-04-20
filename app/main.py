@@ -1,11 +1,13 @@
 import sqlite3
 from datetime import datetime, timedelta
-from fastapi import FastAPI, HTTPException, Depends, status
+from enum import StrEnum
+from typing import Any
+
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from pydantic import BaseModel, EmailStr
 from passlib.context import CryptContext
-from enum import Enum
+from pydantic import BaseModel, EmailStr
 
 app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
@@ -64,7 +66,7 @@ ITEM_LIST = {
         "description": "Courier Uniform, yes",
     },
 }
-JOB_LIST = {
+JOB_LIST: dict[str, dict[str, Any]] = {
     "office": {
         "depends": False,
         "reward": 500,
@@ -143,8 +145,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except JWTError:
-        raise credentials_exception
+    except JWTError as e:
+        raise credentials_exception from e
 
     conn = sqlite3.connect("freezino.db")
     conn.row_factory = sqlite3.Row
@@ -188,7 +190,7 @@ class UserLogin(BaseModel):
     password: str
 
 
-class JobTypeEnum(str, Enum):
+class JobTypeEnum(StrEnum):
     office = "office"
     courier = "courier"
     lab_rat = "lab_rat"
@@ -277,7 +279,7 @@ def login_user(user_data: UserLogin):
         }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера") from e
     finally:
         if "conn" in locals():
             conn.close()
@@ -313,14 +315,14 @@ def register_user(user: UserRegister):
                 "refresh_token": "fake2",
             },
         }
-    except sqlite3.IntegrityError:
+    except sqlite3.IntegrityError as e:
         raise HTTPException(
             status_code=400,
             detail="Пользователь с таким username или email уже существует",
-        )
+        ) from e
     except Exception as e:
         print(f"Registration Error: {e}")
-        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
@@ -332,7 +334,7 @@ def health_status():
 
 
 @app.get("/api/auth/me")
-def read_users_me(current_user=Depends(get_current_user)):
+def read_users_me(current_user: Any = Depends(get_current_user)):
     return {
         "user": {
             "id": current_user["id"],
@@ -345,7 +347,7 @@ def read_users_me(current_user=Depends(get_current_user)):
 
 
 @app.post("/api/work/start")
-def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_user)):
+def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_current_user)):
     print(f"Пользователь {current_user['username']} хочет работать {work.job_type}")
     try:
         conn = sqlite3.connect("freezino.db")
@@ -362,7 +364,7 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
         time_now = datetime.utcnow()
         time_db = time_now.isoformat()
         end_time = 0
-        job = work.job_type.value
+        job = work.job_type
         duration = JOB_LIST[job].get("duration")
         cursor.execute(
             "SELECT user_id FROM work_sessions WHERE user_id = ? AND completed = 0",
@@ -371,19 +373,25 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
         rows = cursor.fetchone()
 
         if rows:
-            raise HTTPException(
-                status_code=400, detail="work session already in progress"
-            )
+            raise HTTPException(status_code=400, detail="work session already in progress")
         else:
-
             cursor.execute(
                 """
-            INSERT INTO work_sessions (user_id, job_type, start_time, duration, completed, earned, end_time, jailed)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+                    INSERT INTO work_sessions (
+                        user_id,
+                        job_type,
+                        start_time,
+                        duration,
+                        completed,
+                        earned,
+                        end_time,
+                        jailed
+                    )
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
                 (
                     current_user["id"],
-                    work.job_type.value,
+                    work.job_type,
                     time_db,
                     duration,
                     0,
@@ -398,7 +406,7 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
             "success": True,
             "data": {
                 "id": new_session_id,
-                "job_type": work.job_type.value,
+                "job_type": work.job_type,
                 "start_time": time_db,
                 "duration": duration,
                 "completed": 0,
@@ -408,14 +416,14 @@ def start_work_session(work: WorkStartRequest, current_user=Depends(get_current_
         }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
 
 
 @app.get("/api/work/status")
-def get_status(current_user=Depends(get_current_user)):
+def get_status(current_user: Any = Depends(get_current_user)):
     # print(current_user)
     try:
         conn = sqlite3.connect("freezino.db")
@@ -434,7 +442,7 @@ def get_status(current_user=Depends(get_current_user)):
             return {
                 "success": True,
                 "data": {"is_working": False, "time_remaining": 0, "session": 0},
-                "message": f"No work in progress found",
+                "message": "No work in progress found",
             }
         else:
             duration = rows["duration"]
@@ -460,22 +468,27 @@ def get_status(current_user=Depends(get_current_user)):
             }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
 
 
 @app.get("/api/work/history")
-def get_history(
-    limit: int = 20, offset: int = 0, current_user=Depends(get_current_user)
-):
+def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 1 ORDER BY end_time DESC LIMIT ? OFFSET ?",
+            """
+                SELECT *
+                FROM work_sessions
+                WHERE user_id = ?
+                AND completed = 1
+                ORDER BY end_time DESC
+                LIMIT ? OFFSET ?
+                """,
             (current_user["id"], limit, offset),
         )
         rows = cursor.fetchall()
@@ -517,14 +530,14 @@ def get_history(
             }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
 
 
 @app.post("/api/work/complete")
-def complete_work(current_user=Depends(get_current_user)):
+def complete_work(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -548,11 +561,12 @@ def complete_work(current_user=Depends(get_current_user)):
             date_py = datetime.fromisoformat(rows["start_time"])
             time_check = datetime.utcnow() - date_py
             time_left = duration - time_check.total_seconds()
-            end_time = 0
+            bonus_value = job_info.get("money_bonus", 0)
+            end_time: int | datetime = 0
 
-            if job_info.get("depends") and job_info.get("money_bonus") > 0:
+            if job_info.get("depends") and bonus_value > 0:
                 message_bonus = "No bonus for you"
-                bonus = job_info.get("money_bonus")
+                bonus = job_info.get("money_bonus", 0)
                 req_item = job_info["requirements"]
                 message_bonus = f"You have an {req_item}, your bonus is {bonus} dollars"
             if time_left < 0:
@@ -636,7 +650,9 @@ def complete_work(current_user=Depends(get_current_user)):
                             """,
                         (current_user["id"],),
                     )
-                    message_jail = "You are going to Jail for 8 game-years, and cant start work anymore"
+                    message_jail = (
+                        "You are going to Jail for 8 game-years, and cant start work anymore"
+                    )
 
                 conn.commit()
                 return {
@@ -660,14 +676,14 @@ def complete_work(current_user=Depends(get_current_user)):
 
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
 
 
 @app.post("/api/work/cancel")
-def cancel(current_user=Depends(get_current_user)):
+def cancel(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -693,7 +709,7 @@ def cancel(current_user=Depends(get_current_user)):
             }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
@@ -705,7 +721,7 @@ def get_work_jobs():
 
 
 @app.post("/api/work/skip-jail")
-def skip_jail(current_user=Depends(get_current_user)):  # Скип пока в разработке
+def skip_jail(current_user: Any = Depends(get_current_user)):  #  Skip в работе
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -736,14 +752,14 @@ def skip_jail(current_user=Depends(get_current_user)):  # Скип пока в �
             }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
 
 
 @app.get("/api/user/profile")
-def get_profile(current_user=Depends(get_current_user)):
+def get_profile(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -767,14 +783,14 @@ def get_profile(current_user=Depends(get_current_user)):
             }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
 
 
 @app.get("/api/user/balance")
-def get_balance(current_user=Depends(get_current_user)):
+def get_balance(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -792,14 +808,14 @@ def get_balance(current_user=Depends(get_current_user)):
             }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
 
 
 @app.get("/api/user/stats")
-def get_stats(current_user=Depends(get_current_user)):
+def get_stats(current_user: Any = Depends(get_current_user)):
     try:
         conn = sqlite3.connect("freezino.db")
         conn.row_factory = sqlite3.Row
@@ -820,7 +836,7 @@ def get_stats(current_user=Depends(get_current_user)):
             }
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
     finally:
         if "conn" in locals():
             conn.close()
