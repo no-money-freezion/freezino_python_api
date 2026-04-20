@@ -562,7 +562,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
             time_check = datetime.utcnow() - date_py
             time_left = duration - time_check.total_seconds()
             bonus_value = job_info.get("money_bonus", 0)
-            end_time: Any = None
+            end_time: int | datetime = 0
 
             if job_info.get("depends") and bonus_value > 0:
                 message_bonus = "No bonus for you"
