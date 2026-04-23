@@ -43,3 +43,35 @@ Open `swagger-ui.html` in any browser - it loads Swagger UI from CDN.
 - Loan system (friends, bank, microcredit)
 - Real-time blackjack via WebSocket
 # freezino_python_api
+
+## Setup
+
+```bash
+pip install -e ".[dev]"
+```
+### Lint
+
+```bash
+ruff check .
+```
+### Format
+
+```bash
+ruff format .
+```
+### Type checking
+
+```bash
+mypy .
+```
+### Tests
+
+```bash
+pytest
+```
+### Pre-commit
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
