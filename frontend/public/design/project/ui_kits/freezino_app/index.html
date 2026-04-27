@@ -1,0 +1,2766 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Freezino — UI Kit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root {
+  /* Surfaces — richer dark with a purple-black base */
+  --bg-0:#0A0710; --bg-1:#140F1E; --bg-2:#1E1630; --bg-3:#2A1F45;
+  --fg-1:#FFFFFF; --fg-2:#D6CFE6; --fg-3:#9189A8; --fg-4:#5A5370;
+  --border-1:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.16);
+
+  /* Casino palette — GOLD as primary, neon-red accent, neon-cyan */
+  --gold:      #FFC839;
+  --gold-bright:#FFE14A;
+  --gold-dim:  #D19A24;
+  --gold-soft: rgba(255,200,57,.15);
+
+  --accent:    #FF2E63;       /* hot pink-red, jackpot loss */
+  --accent-bright:#FF5C8A;
+  --accent-soft:rgba(255,46,99,.15);
+
+  --cyan:      #00E5FF;       /* secondary neon for specials */
+  --cyan-soft: rgba(0,229,255,.15);
+
+  --purple:    #B344FF;
+  --purple-soft:rgba(179,68,255,.15);
+
+  --green:     #00E676;       /* wins, positive balance */
+  --green-soft:rgba(0,230,118,.15);
+
+  --tier-common:#8E8AAB; --tier-rare:#4FC3F7;
+  --tier-epic:#B344FF; --tier-legendary:#FFC839;
+
+  --font-sans:'Inter',ui-sans-serif,system-ui,sans-serif;
+  --font-serif:'Instrument Serif','Iowan Old Style',Georgia,serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+
+  --radius-sm:4px; --radius-md:8px; --radius-lg:14px; --radius-xl:20px; --radius-full:9999px;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+
+  --glow-gold: 0 0 24px rgba(255,200,57,.45), 0 0 64px rgba(255,200,57,.25);
+  --glow-accent: 0 0 24px rgba(255,46,99,.5), 0 0 64px rgba(255,46,99,.25);
+  --glow-green: 0 0 24px rgba(0,230,118,.4);
+  --glow-cyan: 0 0 24px rgba(0,229,255,.4);
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg-0);color:var(--fg-2);margin:0;font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+body{
+  background:
+    radial-gradient(1200px 800px at 80% -10%, rgba(179,68,255,.15), transparent 60%),
+    radial-gradient(900px 600px at 10% 100%, rgba(255,46,99,.12), transparent 55%),
+    var(--bg-0);
+  background-attachment:fixed;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;padding:0}
+button:disabled{cursor:not-allowed;opacity:.4}
+input{font-family:inherit;outline:none}
+::selection{background:var(--gold);color:#111}
+
+.h-display{font-family:var(--font-serif);font-weight:400;font-size:80px;line-height:.95;letter-spacing:-0.025em;color:var(--fg-1)}
+.h-display i{font-style:italic;color:var(--gold)}
+.h1{font-family:var(--font-sans);font-weight:700;font-size:36px;line-height:1.05;letter-spacing:-0.02em;color:var(--fg-1)}
+.h2{font-family:var(--font-sans);font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-0.015em;color:var(--fg-1)}
+.h3{font-family:var(--font-sans);font-weight:600;font-size:19px;line-height:1.25;letter-spacing:-0.01em;color:var(--fg-1)}
+.p-lg{font-size:17px;color:var(--fg-2);line-height:1.55}
+.p{font-size:15px;color:var(--fg-2);line-height:1.55}
+.p-sm{font-size:13px;color:var(--fg-3);line-height:1.5}
+.label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3)}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.money{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:600;color:var(--gold)}
+.money-white{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg-1)}
+
+/* Layout */
+.app{display:flex;min-height:100vh}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.content{flex:1;overflow-y:auto}
+.container{max-width:1240px;margin:0 auto;padding:0 40px}
+
+/* Header */
+.header{position:sticky;top:0;z-index:40;background:rgba(10,7,16,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-1)}
+.header-inner{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;gap:24px}
+.jackpot-ticker{display:flex;align-items:center;gap:10px;padding:6px 14px;border-radius:var(--radius-full);background:linear-gradient(90deg,rgba(255,200,57,.15),rgba(255,46,99,.15));border:1px solid var(--border-1)}
+.jackpot-ticker .label{color:var(--gold);font-size:10px}
+.jackpot-ticker .money{font-size:14px;color:var(--gold-bright);text-shadow:0 0 8px rgba(255,200,57,.4)}
+.balance-pill{display:flex;align-items:center;gap:12px;padding:8px 14px;border:1px solid var(--border-1);border-radius:var(--radius-md);background:var(--bg-1)}
+.balance-pill .label{font-size:10px;color:var(--fg-3)}
+.balance-pill .money{font-size:15px}
+.icon-btn{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-md);color:var(--fg-3);transition:all .12s var(--ease)}
+.icon-btn:hover{background:var(--bg-2);color:var(--gold)}
+
+/* Language switcher */
+.lang-menu-wrap{position:relative}
+.lang-btn{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--radius-md);background:var(--bg-1);border:1px solid var(--border-1);color:var(--fg-2);font-size:13px;font-weight:500;transition:all .12s var(--ease)}
+.lang-btn:hover{border-color:var(--gold);color:var(--fg-1)}
+.lang-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:160px;background:var(--bg-1);border:1px solid var(--border-2);border-radius:var(--radius-md);box-shadow:0 20px 48px rgba(0,0,0,.6);padding:4px;z-index:50;animation:fade-in .15s var(--ease)}
+.lang-option{display:flex;align-items:center;gap:10px;padding:9px 12px;width:100%;border-radius:var(--radius-sm);color:var(--fg-2);font-size:13px;text-align:left;transition:background .1s var(--ease)}
+.lang-option:hover{background:var(--bg-2);color:var(--fg-1)}
+.lang-option.active{background:var(--bg-2);color:var(--gold)}
+.lang-option .flag{font-size:18px;line-height:1}
+@keyframes fade-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Sidebar */
+.sidebar{width:244px;flex-shrink:0;border-right:1px solid var(--border-1);background:rgba(20,15,30,.5);backdrop-filter:blur(10px);padding:24px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.sidebar-logo{padding:0 12px 24px;font-family:var(--font-serif);font-size:30px;letter-spacing:-0.02em;color:var(--fg-1);display:flex;align-items:baseline;gap:2px;line-height:1}
+.sidebar-logo i{font-style:italic;background:linear-gradient(135deg,var(--gold),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sidebar-logo .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:var(--glow-gold);display:inline-block;margin-left:4px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-section{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-4);padding:18px 12px 8px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-md);color:var(--fg-3);font-size:14px;font-weight:500;width:100%;text-align:left;transition:all .12s var(--ease);position:relative}
+.nav-item:hover{background:var(--bg-2);color:var(--fg-1)}
+.nav-item.active{background:linear-gradient(90deg,rgba(255,200,57,.15),transparent);color:var(--fg-1)}
+.nav-item.active::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--gold);box-shadow:var(--glow-gold)}
+.nav-item .nav-icon{color:var(--fg-4)}
+.nav-item.active .nav-icon{color:var(--gold)}
+.nav-footer{margin-top:auto;padding:14px;border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(255,46,99,.1),rgba(179,68,255,.08));border:1px solid var(--border-1)}
+.nav-footer .label{color:var(--accent);margin-bottom:6px}
+.nav-footer .note{font-size:12px;color:var(--fg-2);line-height:1.45}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:var(--radius-md);font-size:14px;font-weight:600;transition:all .15s var(--ease);letter-spacing:.01em}
+.btn-primary{background:linear-gradient(135deg,var(--gold-bright),var(--gold-dim));color:#1A0F00;box-shadow:var(--glow-gold)}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 0 32px rgba(255,200,57,.6),0 0 80px rgba(255,200,57,.3)}
+.btn-danger{background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;box-shadow:var(--glow-accent)}
+.btn-danger:hover:not(:disabled){transform:translateY(-1px)}
+.btn-secondary{background:var(--bg-2);color:var(--fg-1);border:1px solid var(--border-1)}
+.btn-secondary:hover:not(:disabled){background:var(--bg-3);border-color:var(--border-2)}
+.btn-ghost{color:var(--fg-3)}
+.btn-ghost:hover:not(:disabled){color:var(--fg-1)}
+.btn-lg{padding:15px 28px;font-size:15px}
+.btn-xl{padding:18px 36px;font-size:17px;font-weight:700}
+.btn-block{width:100%}
+
+/* Cards */
+.card{background:var(--bg-1);border:1px solid var(--border-1);border-radius:var(--radius-lg);padding:24px}
+.card-glow{background:linear-gradient(180deg,var(--bg-1),var(--bg-0));border:1px solid var(--border-1);border-radius:var(--radius-lg);padding:24px;position:relative;overflow:hidden}
+.card-glow::before{content:"";position:absolute;inset:0;background:radial-gradient(400px 200px at var(--gx,50%) 0%,rgba(255,200,57,.08),transparent 70%);pointer-events:none}
+.card-interactive{background:var(--bg-1);border:1px solid var(--border-1);border-radius:var(--radius-lg);transition:all .2s var(--ease);cursor:pointer}
+.card-interactive:hover{border-color:var(--gold);background:var(--bg-2);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.4),0 0 0 1px rgba(255,200,57,.2)}
+
+/* Inputs */
+.input{background:var(--bg-2);border:1px solid var(--border-1);border-radius:var(--radius-md);padding:12px 14px;color:var(--fg-1);font-size:14px;width:100%;transition:border-color .12s var(--ease)}
+.input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
+.input::placeholder{color:var(--fg-4)}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--fg-3);margin-bottom:6px}
+
+/* Tag */
+.tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:600;letter-spacing:.04em;background:var(--bg-2);color:var(--fg-2);border:1px solid var(--border-1)}
+.tag-gold{background:var(--gold-soft);color:var(--gold);border-color:rgba(255,200,57,.3)}
+.tag-accent{background:var(--accent-soft);color:var(--accent-bright);border-color:rgba(255,46,99,.3)}
+.tag-cyan{background:var(--cyan-soft);color:var(--cyan);border-color:rgba(0,229,255,.3)}
+.tag-purple{background:var(--purple-soft);color:#D185FF;border-color:rgba(179,68,255,.3)}
+.tag-green{background:var(--green-soft);color:var(--green);border-color:rgba(0,230,118,.3)}
+
+/* Losing meter */
+.losing-meter{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:var(--radius-full);background:var(--accent-soft);color:var(--accent-bright);font-family:var(--font-mono);font-size:12px;font-weight:600;border:1px solid rgba(255,46,99,.2)}
+.pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 1.4s var(--ease) infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+
+/* Utilities */
+.row{display:flex;align-items:center}
+.col{display:flex;flex-direction:column}
+.grid{display:grid}
+.between{justify-content:space-between}
+.gap-1{gap:4px}.gap-2{gap:8px}.gap-3{gap:12px}.gap-4{gap:16px}.gap-6{gap:24px}.gap-8{gap:32px}
+.mt-2{margin-top:8px}.mt-4{margin-top:16px}.mt-6{margin-top:24px}.mt-8{margin-top:32px}.mt-12{margin-top:48px}
+.mb-2{margin-bottom:8px}.mb-4{margin-bottom:16px}.mb-6{margin-bottom:24px}.mb-8{margin-bottom:32px}.mb-12{margin-bottom:48px}
+.flex-1{flex:1}.text-center{text-align:center}
+
+/* Shimmer (for jackpot numbers) */
+.shimmer{background:linear-gradient(90deg,var(--gold) 0%,var(--gold-bright) 25%,#FFF8A3 50%,var(--gold-bright) 75%,var(--gold) 100%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 3s linear infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Progress bar */
+.bar{height:8px;border-radius:var(--radius-full);background:var(--bg-2);overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--gold),var(--accent));transition:width .4s var(--ease);box-shadow:0 0 12px rgba(255,200,57,.4)}
+.bar-fill.danger{background:linear-gradient(90deg,var(--accent),var(--purple))}
+.bar-fill.success{background:linear-gradient(90deg,var(--green),var(--cyan))}
+
+/* Confetti-like decorative dots on hero */
+.hero-deco{position:relative;overflow:hidden;border-radius:var(--radius-xl);padding:48px;background:linear-gradient(135deg,rgba(255,200,57,.08),rgba(255,46,99,.08) 50%,rgba(179,68,255,.08));border:1px solid var(--border-1)}
+.hero-deco::before,.hero-deco::after{content:"";position:absolute;border-radius:50%;filter:blur(40px);pointer-events:none}
+.hero-deco::before{top:-80px;right:-80px;width:240px;height:240px;background:var(--gold);opacity:.2}
+.hero-deco::after{bottom:-100px;left:-80px;width:280px;height:280px;background:var(--accent);opacity:.15}
+
+/* Slot reel shine */
+.reel-cell{position:relative;overflow:hidden}
+.reel-cell.winner::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 2px var(--gold),inset 0 0 24px rgba(255,200,57,.5);pointer-events:none}
+
+/* Chip with rim */
+.chip{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:13px;font-weight:700;color:#fff;position:relative;flex-shrink:0}
+.chip::before{content:"";position:absolute;inset:3px;border-radius:50%;border:2px dashed rgba(255,255,255,.35)}
+
+/* ─── Mobile bottom nav ─── */
+.bottom-nav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;background:rgba(10,7,16,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border-2);padding:8px 6px calc(8px + env(safe-area-inset-bottom));justify-content:space-around}
+.bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:var(--radius-md);color:var(--fg-4);font-size:10px;font-weight:600;letter-spacing:.02em;transition:color .12s var(--ease);position:relative;min-width:0}
+.bottom-nav-item span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.bottom-nav-item.active{color:var(--gold)}
+.bottom-nav-item.active::after{content:"";position:absolute;top:2px;left:50%;transform:translateX(-50%);width:22px;height:2px;border-radius:2px;background:var(--gold);box-shadow:var(--glow-gold)}
+.mobile-more-sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--bg-1);border-top:1px solid var(--border-2);border-radius:20px 20px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));animation:sheet-up .22s var(--ease)}
+.mobile-more-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:55;animation:fade-in .2s var(--ease)}
+@keyframes sheet-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border-2);margin:0 auto 16px}
+.sheet-item{display:flex;align-items:center;gap:14px;padding:14px 12px;border-radius:var(--radius-md);color:var(--fg-2);font-size:15px;font-weight:500;width:100%;text-align:left;transition:background .1s var(--ease)}
+.sheet-item:hover{background:var(--bg-2);color:var(--fg-1)}
+.sheet-item.active{background:var(--bg-2);color:var(--gold)}
+.sheet-item .sheet-icon{color:var(--fg-4);flex-shrink:0}
+.sheet-item.active .sheet-icon{color:var(--gold)}
+
+/* Hidden helpers */
+.mobile-only{display:none}
+.desktop-only{display:flex}
+
+/* ─── Responsive breakpoints ─── */
+@media (max-width: 900px){
+  .container{padding:0 16px}
+  .sidebar{display:none}
+  .bottom-nav{display:flex}
+  .content{padding-bottom:84px}
+  .mobile-only{display:flex}
+  .desktop-only{display:none}
+
+  .header-inner{height:56px;padding:0 14px;gap:8px}
+  .jackpot-ticker{padding:5px 10px;gap:6px}
+  .jackpot-ticker .label{display:none}
+  .jackpot-ticker .money{font-size:12px}
+  .losing-meter{padding:5px 9px;font-size:11px}
+  .balance-pill{padding:6px 10px;gap:6px}
+  .balance-pill .label{display:none}
+  .balance-pill .money{font-size:13px}
+  .icon-btn{width:32px;height:32px}
+  .lang-btn{padding:6px 8px;font-size:12px}
+
+  .h-display{font-size:44px;line-height:1}
+  .h1{font-size:26px}
+  .h2{font-size:21px}
+  .h3{font-size:17px}
+  .p-lg{font-size:15px}
+
+  .hero-deco{padding:28px 20px;border-radius:var(--radius-lg)}
+  .card{padding:18px;border-radius:var(--radius-md)}
+  .card-glow{padding:20px;border-radius:var(--radius-md)}
+  .btn-xl{padding:14px 22px;font-size:15px}
+  .btn-lg{padding:13px 20px;font-size:14px}
+
+  /* Grid overrides — collapse multi-col layouts */
+  .grid[style*="repeat(5"]{grid-template-columns:repeat(2,1fr) !important}
+  .grid[style*="repeat(4"]{grid-template-columns:repeat(2,1fr) !important}
+  .grid[style*="repeat(3"]{grid-template-columns:repeat(2,1fr) !important}
+  .grid[style*="2fr 1fr 1fr"]{grid-template-columns:1fr !important}
+  .grid[style*="2fr 1fr"]{grid-template-columns:1fr !important}
+  .grid[style*="1fr 2fr"]{grid-template-columns:1fr !important}
+
+  /* Stats table → card list on mobile */
+  .stats-table-row{grid-template-columns:1fr !important;gap:10px !important;padding:16px !important}
+  .stats-table-head{display:none !important}
+  .stats-cell-mobile-label{display:block !important;font-size:10px;color:var(--fg-4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+
+  /* Slots cells shrink */
+  .reel-cell{font-size:34px !important}
+
+  /* Roulette wheel scales */
+  .roulette-wheel{transform:scale(.8);transform-origin:center top}
+}
+
+@media (max-width: 480px){
+  .grid[style*="repeat(3"]{grid-template-columns:1fr !important}
+  .grid[style*="repeat(2"]{grid-template-columns:1fr !important}
+  .h-display{font-size:36px}
+  .container{padding:0 12px}
+  .jackpot-ticker{display:none}
+  .reel-cell{font-size:26px !important}
+  .hero-deco{padding:24px 18px}
+}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+  // ─── i18n ────────────────────────────────────────────────────────────────
+  const TRANSLATIONS = {
+    ru: {
+      code: 'ru', flag: '🇷🇺', label: 'Русский',
+      nav: { play: 'Играть', other: 'Остальное', games: 'Игры', shop: 'Магазин',
+             profile: 'Профиль', credit: 'Кредит', work: 'Работа', stats: 'Статистика' },
+      common: { balance: 'Баланс', back: 'Назад', signIn: 'Войти', signUp: 'Создать аккаунт',
+                login: 'Вход', register: 'Регистрация', username: 'Логин', email: 'Email',
+                password: 'Пароль', google: 'Войти через Google', or: 'или',
+                buy: 'Купить', owned: 'В наличии', cantAfford: 'Не хватает',
+                minBet: 'Мин. ставка', bet: 'Ставка', spin: 'Крутить', clear: 'Очистить',
+                launch: 'Запустить', spinning: 'Крутится…', soon: 'скоро', active: 'активно',
+                jackpot: 'Джекпот', losing: 'теряете', secPerDrop: '/сек',
+                virtualOnly: 'Только виртуальные деньги. Реальных ставок нет.',
+                reminder: 'Напоминание',
+                playResponsibly: 'Играйте ответственно. Никаких реальных ставок.',
+                comingSoon: 'В разработке', comingSoonDesc: 'Эта секция пока не построена.',
+                toGames: 'К играм' },
+      dash: { label: 'Главная', title1: 'Вы', titleItalic: 'проигрываете',
+              title2: 'деньги.', title3: 'Это нормально — они не настоящие.',
+              intro: 'Freezino показывает, как быстро казино забирает ваш баланс. Играйте, считайте, запоминайте. А потом закройте реальное приложение.',
+              time: 'Время за играми', lost: 'Проиграно', won: 'Выиграно',
+              today: 'сегодня', total: 'всего', sectionGames: 'Игры', available: 'доступно' },
+      games: { roulette: 'Рулетка', rouletteSub: 'Европейская, 37 чисел',
+               slots: 'Слоты', slotsSub: '5 барабанов, 10 линий',
+               blackjack: 'Блэкджек', blackjackSub: 'Дилер против вас до 21',
+               craps: 'Крэпс', crapsSub: 'Классические кости',
+               crash: 'Crash', crashSub: 'Успей забрать до падения',
+               hilo: 'Hi-Lo', hiloSub: 'Больше или меньше' },
+      roul: { table: 'Стол', title: 'Европейская рулетка', active: 'Активных ставок',
+              chip: 'Номинал фишки', bets: 'Ставки', recent: 'Последние',
+              win: 'Выигрыш', loss: 'Проигрыш', stake: 'Ставка', payout: 'Выплата',
+              red: 'Красное', black: 'Чёрное', even: 'Чёт', odd: 'Нечет' },
+      slots: { machine: 'Автомат', title: 'Классические слоты', result: 'Результат',
+               miss: 'Мимо', jackpot5: '5 одинаковых', jackpotHint: 'Джекпот',
+               three: '3 одинаковых', medium: 'Средний', two: '2 одинаковых', nothing: 'Ничего' },
+      shop: { title: 'Траты против проигрышей',
+              intro: 'Купите что-нибудь на виртуальные деньги, чтобы увидеть, сколько часов у автомата оно бы стоило.',
+              all: 'Всё', cars: 'Машины', clothing: 'Одежда',
+              accessories: 'Аксессуары', houses: 'Недвижимость', price: 'Цена' },
+      credit: { label: 'Займ', title: 'Кредит в Freezino Bank',
+                sub: 'Возьмите «виртуальный» кредит, чтобы продолжить игру. Потом посмотрите, как растут проценты.',
+                available: 'Доступно', taken: 'Уже должны', rate: 'Ставка', days: 'Срок',
+                take: 'Взять кредит', repay: 'Погасить', amount: 'Сумма',
+                interest: 'Процент', perDay: '% в день', totalToRepay: 'К возврату',
+                warning: 'Это ловушка, которая учит, что займ на азартные игры — путь к реальной беде.',
+                offers: 'Предложения' },
+      profile: { title: 'Ваш профиль', joined: 'С нами с', level: 'Уровень', xp: 'XP до следующего',
+                 stats: 'Краткая статистика', biggestWin: 'Крупнейший выигрыш',
+                 biggestLoss: 'Крупнейший проигрыш', favGame: 'Любимая игра',
+                 sessions: 'Сессий', totalTime: 'Всего времени',
+                 achievements: 'Достижения', settings: 'Настройки',
+                 inventory: 'Инвентарь', items: 'предметов' },
+      work: { label: 'Работа', title: 'Мини-работа',
+              sub: 'Получайте $500 каждые 3 минуты. Сравните с скоростью, с которой вы проигрываете.',
+              current: 'Текущая работа', earn: 'Заработок', cooldown: 'Следующая выплата через',
+              claim: 'Забрать', claimed: 'Заработано всего', sessions: 'Смен отработано',
+              jobs: 'Виды работ' },
+      stats: { label: 'Правда', title: 'Математика казино',
+               sub: 'Процент возврата (RTP) и ожидаемый убыток для каждой игры. Чем ниже RTP — тем быстрее уходит баланс.',
+               game: 'Игра', rtp: 'RTP', edge: 'Преимущество дома',
+               perHour: 'Убыток / час', yourPlay: 'Ваши сессии',
+               note: 'Если играть безостановочно со ставкой $10, за 8 часов математически уйдёт $3 200. Это не «удача» — это формула.' },
+    },
+    en: {
+      code: 'en', flag: '🇺🇸', label: 'English',
+      nav: { play: 'Play', other: 'More', games: 'Games', shop: 'Shop',
+             profile: 'Profile', credit: 'Credit', work: 'Work', stats: 'Odds' },
+      common: { balance: 'Balance', back: 'Back', signIn: 'Sign in', signUp: 'Create account',
+                login: 'Sign in', register: 'Register', username: 'Username', email: 'Email',
+                password: 'Password', google: 'Continue with Google', or: 'or',
+                buy: 'Buy', owned: 'Owned', cantAfford: 'Not enough',
+                minBet: 'Min bet', bet: 'Bet', spin: 'Spin', clear: 'Clear',
+                launch: 'Launch', spinning: 'Spinning…', soon: 'soon', active: 'active',
+                jackpot: 'Jackpot', losing: 'losing', secPerDrop: '/sec',
+                virtualOnly: 'Virtual money only. No real wagers.',
+                reminder: 'Reminder', playResponsibly: 'Play responsibly. No real bets, ever.',
+                comingSoon: 'Coming soon', comingSoonDesc: 'This section is not built yet.',
+                toGames: 'Back to games' },
+      dash: { label: 'Home', title1: 'You', titleItalic: 'lose',
+              title2: 'money.', title3: "That's fine — it isn't real.",
+              intro: 'Freezino shows how fast the house takes your balance. Play, watch the numbers, remember them. Then close the real app.',
+              time: 'Time playing', lost: 'Lost', won: 'Won',
+              today: 'today', total: 'all time', sectionGames: 'Games', available: 'available' },
+      games: { roulette: 'Roulette', rouletteSub: 'European, 37 numbers',
+               slots: 'Slots', slotsSub: '5 reels · 10 paylines',
+               blackjack: 'Blackjack', blackjackSub: 'Beat the dealer to 21',
+               craps: 'Craps', crapsSub: 'Classic dice table',
+               crash: 'Crash', crashSub: 'Cash out before the bust',
+               hilo: 'Hi-Lo', hiloSub: 'Higher or lower' },
+      roul: { table: 'Table', title: 'European Roulette', active: 'Active bets',
+              chip: 'Chip value', bets: 'Bets', recent: 'Recent',
+              win: 'Win', loss: 'Loss', stake: 'Stake', payout: 'Payout',
+              red: 'Red', black: 'Black', even: 'Even', odd: 'Odd' },
+      slots: { machine: 'Machine', title: 'Classic slots', result: 'Result',
+               miss: 'Missed', jackpot5: '5 of a kind', jackpotHint: 'Jackpot',
+               three: '3 of a kind', medium: 'Medium', two: '2 of a kind', nothing: 'Nothing' },
+      shop: { title: 'Spend vs. lose',
+              intro: 'Buy something with virtual money to see how many hours at the slot machine it would cost.',
+              all: 'All', cars: 'Cars', clothing: 'Clothing',
+              accessories: 'Accessories', houses: 'Houses', price: 'Price' },
+      credit: { label: 'Loan', title: 'Freezino Bank credit',
+                sub: 'Take a "virtual" loan to keep playing. Then watch the interest grow.',
+                available: 'Available', taken: 'Owed', rate: 'Rate', days: 'Term',
+                take: 'Take loan', repay: 'Repay', amount: 'Amount',
+                interest: 'Interest', perDay: '% / day', totalToRepay: 'To repay',
+                warning: 'This is a trap — the lesson is that borrowing for gambling ends badly.',
+                offers: 'Offers' },
+      profile: { title: 'Your profile', joined: 'Member since', level: 'Level', xp: 'XP to next',
+                 stats: 'Quick stats', biggestWin: 'Biggest win',
+                 biggestLoss: 'Biggest loss', favGame: 'Favorite game',
+                 sessions: 'Sessions', totalTime: 'Total time',
+                 achievements: 'Achievements', settings: 'Settings',
+                 inventory: 'Inventory', items: 'items' },
+      work: { label: 'Work', title: 'Honest work',
+              sub: 'Earn $500 every 3 minutes. Compare this to how fast you lose.',
+              current: 'Current job', earn: 'Payout', cooldown: 'Next claim in',
+              claim: 'Claim', claimed: 'Total earned', sessions: 'Shifts worked',
+              jobs: 'Jobs' },
+      stats: { label: 'Truth', title: 'Casino math',
+               sub: "Return-to-Player (RTP) and expected loss for each game. Lower RTP means the house takes your balance faster.",
+               game: 'Game', rtp: 'RTP', edge: 'House edge',
+               perHour: 'Loss / hour', yourPlay: 'Your sessions',
+               note: "Play $10 bets non-stop for 8 hours — you lose $3,200 on average. That's not luck. It's the formula." },
+    },
+    es: {
+      code: 'es', flag: '🇪🇸', label: 'Español',
+      nav: { play: 'Jugar', other: 'Más', games: 'Juegos', shop: 'Tienda',
+             profile: 'Perfil', credit: 'Crédito', work: 'Trabajo', stats: 'Cuotas' },
+      common: { balance: 'Saldo', back: 'Volver', signIn: 'Entrar', signUp: 'Crear cuenta',
+                login: 'Entrar', register: 'Registrarse', username: 'Usuario', email: 'Email',
+                password: 'Contraseña', google: 'Continuar con Google', or: 'o',
+                buy: 'Comprar', owned: 'Comprado', cantAfford: 'Insuficiente',
+                minBet: 'Apuesta mín.', bet: 'Apuesta', spin: 'Girar', clear: 'Limpiar',
+                launch: 'Lanzar', spinning: 'Girando…', soon: 'pronto', active: 'activas',
+                jackpot: 'Jackpot', losing: 'perdiendo', secPerDrop: '/seg',
+                virtualOnly: 'Solo dinero virtual. Sin apuestas reales.',
+                reminder: 'Recordatorio', playResponsibly: 'Juega con responsabilidad. Nunca apuestas reales.',
+                comingSoon: 'Próximamente', comingSoonDesc: 'Esta sección aún no está construida.',
+                toGames: 'A los juegos' },
+      dash: { label: 'Inicio', title1: 'Estás', titleItalic: 'perdiendo',
+              title2: 'dinero.', title3: 'No pasa nada: no es real.',
+              intro: 'Freezino muestra a qué velocidad el casino se queda con tu saldo. Juega, mira los números, recuérdalos. Luego cierra la app real.',
+              time: 'Tiempo jugado', lost: 'Perdido', won: 'Ganado',
+              today: 'hoy', total: 'total', sectionGames: 'Juegos', available: 'disponibles' },
+      games: { roulette: 'Ruleta', rouletteSub: 'Europea, 37 números',
+               slots: 'Tragaperras', slotsSub: '5 rodillos · 10 líneas',
+               blackjack: 'Blackjack', blackjackSub: 'Vence al crupier',
+               craps: 'Craps', crapsSub: 'Mesa de dados clásica',
+               crash: 'Crash', crashSub: 'Retira antes del crash',
+               hilo: 'Hi-Lo', hiloSub: 'Mayor o menor' },
+      roul: { table: 'Mesa', title: 'Ruleta europea', active: 'Apuestas activas',
+              chip: 'Valor de ficha', bets: 'Apuestas', recent: 'Recientes',
+              win: 'Ganancia', loss: 'Pérdida', stake: 'Apostado', payout: 'Pago',
+              red: 'Rojo', black: 'Negro', even: 'Par', odd: 'Impar' },
+      slots: { machine: 'Máquina', title: 'Tragaperras clásicas', result: 'Resultado',
+               miss: 'Nada', jackpot5: '5 iguales', jackpotHint: 'Jackpot',
+               three: '3 iguales', medium: 'Medio', two: '2 iguales', nothing: 'Nada' },
+      shop: { title: 'Gastar vs. perder',
+              intro: 'Compra con dinero virtual y mira cuántas horas de tragaperras costaría.',
+              all: 'Todo', cars: 'Coches', clothing: 'Ropa',
+              accessories: 'Accesorios', houses: 'Inmuebles', price: 'Precio' },
+      credit: { label: 'Préstamo', title: 'Crédito Freezino Bank',
+                sub: 'Pide un préstamo "virtual" para seguir jugando. Luego observa los intereses.',
+                available: 'Disponible', taken: 'Debes', rate: 'Tasa', days: 'Plazo',
+                take: 'Pedir préstamo', repay: 'Pagar', amount: 'Cantidad',
+                interest: 'Interés', perDay: '% / día', totalToRepay: 'A devolver',
+                warning: 'Es una trampa: pedir prestado para jugar acaba mal.',
+                offers: 'Ofertas' },
+      profile: { title: 'Tu perfil', joined: 'Miembro desde', level: 'Nivel', xp: 'XP para el siguiente',
+                 stats: 'Estadísticas rápidas', biggestWin: 'Mayor ganancia',
+                 biggestLoss: 'Mayor pérdida', favGame: 'Juego favorito',
+                 sessions: 'Sesiones', totalTime: 'Tiempo total',
+                 achievements: 'Logros', settings: 'Ajustes',
+                 inventory: 'Inventario', items: 'objetos' },
+      work: { label: 'Trabajo', title: 'Trabajo honesto',
+              sub: 'Gana $500 cada 3 minutos. Compara con lo rápido que pierdes.',
+              current: 'Trabajo actual', earn: 'Paga', cooldown: 'Próximo cobro en',
+              claim: 'Cobrar', claimed: 'Ganado total', sessions: 'Turnos',
+              jobs: 'Trabajos' },
+      stats: { label: 'Verdad', title: 'Matemáticas del casino',
+               sub: 'RTP y pérdida esperada de cada juego. Menor RTP = pierdes más rápido.',
+               game: 'Juego', rtp: 'RTP', edge: 'Ventaja casa',
+               perHour: 'Pérdida / hora', yourPlay: 'Tus sesiones',
+               note: 'Si apuestas $10 sin parar 8 horas, pierdes $3,200 de media. No es mala suerte. Es la fórmula.' },
+    },
+  };
+  const LangCtx = React.createContext(TRANSLATIONS.ru);
+  window.TRANSLATIONS = TRANSLATIONS;
+  window.LangCtx = LangCtx;
+
+  // ─── Icons ───────────────────────────────────────────────────────────────
+  const Icon = ({ d, size = 18, stroke = 1.75, ...rest }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size}
+         viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" {...rest}>{d}</svg>
+  );
+  const I = {
+    dice:     <Icon d={<><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/></>}/>,
+    spade:    <Icon d={<path d="M12 2c1 4 5 7 5 11a5 5 0 01-6 5 .5.5 0 00.5.5L12 22l.5-3.5a.5.5 0 00.5-.5 5 5 0 01-6-5c0-4 4-7 5-11z"/>}/>,
+    bag:      <Icon d={<><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></>}/>,
+    user:     <Icon d={<><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></>}/>,
+    clock:    <Icon d={<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>}/>,
+    trending: <Icon d={<><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></>}/>,
+    trendDown:<Icon d={<><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></>}/>,
+    credit:   <Icon d={<><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></>}/>,
+    globe:    <Icon d={<><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></>}/>,
+    volume:   <Icon d={<><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></>}/>,
+    bell:     <Icon d={<><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></>}/>,
+    logout:   <Icon d={<><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>}/>,
+    arrowR:   <Icon d={<><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>}/>,
+    check:    <Icon d={<polyline points="20 6 9 17 4 12"/>}/>,
+    refresh:  <Icon d={<><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></>}/>,
+    play:     <Icon d={<polygon points="5 3 19 12 5 21 5 3"/>}/>,
+    flame:    <Icon d={<path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/>}/>,
+    trophy:   <Icon d={<><path d="M8 21h8M12 17v4M17 4h3v4a4 4 0 01-4 4M7 4H4v4a4 4 0 004 4"/><path d="M17 4H7v6a5 5 0 0010 0V4z"/></>}/>,
+    target:   <Icon d={<><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>}/>,
+    zap:      <Icon d={<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>}/>,
+    wallet:   <Icon d={<><path d="M20 7H5a2 2 0 01-2-2 2 2 0 012-2h13v4"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M16 14h2"/></>}/>,
+    briefcase:<Icon d={<><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v3"/></>}/>,
+    chevDown: <Icon d={<polyline points="6 9 12 15 18 9"/>}/>,
+    lock:     <Icon d={<><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></>}/>,
+  };
+  window.I = I;
+  // ───────────────────────────────────────────────────
+  function LangSwitcher({ current, onChange }) {
+    const [open, setOpen] = React.useState(false);
+    const ref = React.useRef(null);
+    React.useEffect(() => {
+      const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+      document.addEventListener('mousedown', h);
+      return () => document.removeEventListener('mousedown', h);
+    }, []);
+    return (
+      <div className="lang-menu-wrap" ref={ref}>
+        <button className="lang-btn" onClick={() => setOpen(o => !o)}>
+          <span style={{ fontSize: 16 }}>{current.flag}</span>
+          {current.code.toUpperCase()}
+          {I.chevDown}
+        </button>
+        {open && (
+          <div className="lang-menu">
+            {Object.values(TRANSLATIONS).map(l => (
+              <button key={l.code}
+                      className={`lang-option ${l.code === current.code ? 'active' : ''}`}
+                      onClick={() => { onChange(l); setOpen(false); }}>
+                <span className="flag">{l.flag}</span>
+                <span style={{ flex: 1 }}>{l.label}</span>
+                {l.code === current.code && I.check}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── Login ───────────────────────────────────────────────────────────────
+  function LoginScreen({ onLogin, lang, onLangChange }) {
+    const [mode, setMode] = React.useState('login');
+    const t = lang.common;
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 24, right: 32, zIndex: 10 }}>
+          <LangSwitcher current={lang} onChange={onLangChange}/>
+        </div>
+        <div style={{ width: '100%', maxWidth: 440 }}>
+          <div className="text-center mb-8">
+            <div className="h-display" style={{ fontSize: 64, marginBottom: 12, lineHeight: 1 }}>
+              freez<i>i</i>no<span style={{ color: 'var(--accent)' }}>.</span>
+            </div>
+            <p className="p" style={{ maxWidth: 340, margin: '0 auto', color: 'var(--fg-3)' }}>
+              {lang.dash.intro.split('.')[0]}.
+            </p>
+          </div>
+
+          <div className="card-glow" style={{ padding: 36 }}>
+            <div style={{ display: 'flex', gap: 4, marginBottom: 24, padding: 4,
+                          background: 'var(--bg-2)', borderRadius: 'var(--radius-md)' }}>
+              {['login', 'register'].map(m => (
+                <button key={m} onClick={() => setMode(m)}
+                        style={{
+                          flex: 1, padding: '10px 12px', borderRadius: 6,
+                          fontSize: 13, fontWeight: 600,
+                          background: mode === m ? 'var(--bg-0)' : 'transparent',
+                          color: mode === m ? 'var(--gold)' : 'var(--fg-3)',
+                          transition: 'all .15s var(--ease)',
+                        }}>
+                  {m === 'login' ? t.login : t.register}
+                </button>
+              ))}
+            </div>
+
+            <div className="col gap-4">
+              <div className="field">
+                <label>{t.username}</label>
+                <input className="input" defaultValue="igrok_1985"/>
+              </div>
+              {mode === 'register' && (
+                <div className="field">
+                  <label>{t.email}</label>
+                  <input className="input" defaultValue="player@example.com"/>
+                </div>
+              )}
+              <div className="field">
+                <label>{t.password}</label>
+                <input className="input" type="password" defaultValue="secret123"/>
+              </div>
+              <button onClick={onLogin} className="btn btn-primary btn-lg btn-block mt-2">
+                {mode === 'login' ? t.signIn : t.signUp}
+                {I.arrowR}
+              </button>
+            </div>
+
+            <div className="row gap-3" style={{ margin: '24px 0' }}>
+              <div style={{ flex: 1, height: 1, background: 'var(--border-1)' }}/>
+              <span style={{ fontSize: 12, color: 'var(--fg-4)' }}>{t.or}</span>
+              <div style={{ flex: 1, height: 1, background: 'var(--border-1)' }}/>
+            </div>
+
+            <button onClick={onLogin} className="btn btn-secondary btn-block">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 10v4h5.5c-.3 1.5-1.3 2.7-2.6 3.5L19 21c2-2 3-4.7 3-9 0-.7 0-1.3-.2-2H12z"/>
+                <path fill="#34A853" d="M5.8 14.1l-3.7 2.8C3.9 20.5 7.7 23 12 23c2.7 0 5-.9 6.6-2.4l-3.9-3c-.7.5-1.7.8-2.7.8-2.5 0-4.6-1.7-5.3-4z"/>
+                <path fill="#FBBC05" d="M5.8 10c-.2.6-.3 1.3-.3 2s.1 1.4.3 2l-3.7 2.8C1.3 15 1 13.5 1 12s.3-3 .8-4.2L5.8 10z"/>
+                <path fill="#4285F4" d="M12 5c1.5 0 2.8.5 3.8 1.4l3-3C16.9 1.8 14.7 1 12 1 7.7 1 3.9 3.5 2.1 7.2l3.7 2.8c.7-2.3 2.8-4 5.2-4z"/>
+              </svg>
+              {t.google}
+            </button>
+          </div>
+
+          <p className="p-sm text-center mt-6" style={{ fontSize: 12 }}>{t.virtualOnly}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Sidebar ─────────────────────────────────────────────────────────────
+  function Sidebar({ active, onNav }) {
+    const lang = React.useContext(LangCtx);
+    const primary = [
+      { id: 'dashboard', label: lang.nav.games,   icon: I.dice },
+      { id: 'shop',      label: lang.nav.shop,    icon: I.bag },
+      { id: 'profile',   label: lang.nav.profile, icon: I.user },
+    ];
+    const secondary = [
+      { id: 'credit', label: lang.nav.credit, icon: I.credit },
+      { id: 'work',   label: lang.nav.work,   icon: I.briefcase },
+      { id: 'stats',  label: lang.nav.stats,  icon: I.trending },
+    ];
+    const NavItem = ({ item }) => (
+      <button className={`nav-item ${active === item.id ? 'active' : ''}`}
+              onClick={() => onNav(item.id)}>
+        <span className="nav-icon">{item.icon}</span>{item.label}
+      </button>
+    );
+    return (
+      <aside className="sidebar">
+        <div className="sidebar-logo">freez<i>i</i>no<span className="dot"/></div>
+        <div className="nav-section">{lang.nav.play}</div>
+        <div className="nav">{primary.map(i => <NavItem key={i.id} item={i}/>)}</div>
+        <div className="nav-section">{lang.nav.other}</div>
+        <div className="nav">{secondary.map(i => <NavItem key={i.id} item={i}/>)}</div>
+        <div className="nav-footer" style={{ marginTop: 'auto' }}>
+          <div className="label">{lang.common.reminder}</div>
+          <div className="note">{lang.common.playResponsibly}</div>
+        </div>
+      </aside>
+    );
+  }
+
+  // ─── Header ──────────────────────────────────────────────────────────────
+  function Header({ balance, losingRate, onLogout, lang, onLangChange }) {
+    return (
+      <header className="header">
+        <div className="header-inner">
+          <div className="row gap-4">
+            <div className="losing-meter">
+              <span className="pulse-dot"/>
+              <span>−${losingRate.toFixed(4)}{lang.common.secPerDrop}</span>
+            </div>
+            <div className="jackpot-ticker">
+              <span className="label">{lang.common.jackpot}</span>
+              <span className="money shimmer">$847,219</span>
+            </div>
+          </div>
+          <div className="row gap-3">
+            <button className="icon-btn" title="Sound">{I.volume}</button>
+            <button className="icon-btn" title="Notifications">{I.bell}</button>
+            <LangSwitcher current={lang} onChange={onLangChange}/>
+            <div className="balance-pill">
+              <span className="label">{lang.common.balance}</span>
+              <span className="money">${balance.toLocaleString()}</span>
+            </div>
+            <div style={{ width: 1, height: 24, background: 'var(--border-1)' }}/>
+            <button className="icon-btn" onClick={onLogout} title="Log out">{I.logout}</button>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // ─── Game Card ───────────────────────────────────────────────────────────
+  function GameCard({ title, subtitle, icon, minBet, isComingSoon, onClick, accent }) {
+    const lang = React.useContext(LangCtx);
+    return (
+      <button
+        onClick={isComingSoon ? undefined : onClick}
+        disabled={isComingSoon}
+        className="card-interactive"
+        style={{
+          textAlign: 'left', padding: 24,
+          display: 'flex', flexDirection: 'column', gap: 20,
+          cursor: isComingSoon ? 'default' : 'pointer',
+          opacity: isComingSoon ? 0.5 : 1,
+          minHeight: 200, position: 'relative', overflow: 'hidden',
+        }}>
+        <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140,
+                      borderRadius: '50%', background: accent || 'var(--gold)', opacity: 0.08,
+                      filter: 'blur(30px)' }}/>
+        <div className="row between" style={{ alignItems: 'flex-start' }}>
+          <div style={{ width: 52, height: 52, borderRadius: 'var(--radius-md)',
+                        background: `linear-gradient(135deg, ${accent || 'var(--gold)'}, transparent)`,
+                        padding: 1 }}>
+            <div style={{ width: '100%', height: '100%', borderRadius: 'inherit',
+                          background: 'var(--bg-2)',
+                          display: 'grid', placeItems: 'center',
+                          color: accent || 'var(--gold)' }}>
+              {React.cloneElement(icon, { size: 24 })}
+            </div>
+          </div>
+          {isComingSoon && <span className="tag">{lang.common.soon}</span>}
+        </div>
+        <div>
+          <h3 className="h3" style={{ marginBottom: 4 }}>{title}</h3>
+          <p className="p-sm" style={{ margin: 0 }}>{subtitle}</p>
+        </div>
+        <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--border-1)' }}
+             className="row between">
+          <span className="label">{lang.common.minBet}</span>
+          <span className="money" style={{ fontSize: 14 }}>${minBet}</span>
+        </div>
+      </button>
+    );
+  }
+
+  // ─── Dashboard ───────────────────────────────────────────────────────────
+  function Dashboard({ onPlay }) {
+    const lang = React.useContext(LangCtx);
+    const games = [
+      { id: 'roulette',  title: lang.games.roulette,  subtitle: lang.games.rouletteSub, minBet: 10, icon: I.refresh, accent: 'var(--accent)' },
+      { id: 'slots',     title: lang.games.slots,     subtitle: lang.games.slotsSub,    minBet: 5,  icon: I.dice,    accent: 'var(--gold)' },
+      { id: 'blackjack', title: lang.games.blackjack, subtitle: lang.games.blackjackSub,minBet: 20, icon: I.spade,   accent: 'var(--purple)', isComingSoon: true },
+      { id: 'craps',     title: lang.games.craps,     subtitle: lang.games.crapsSub,    minBet: 15, icon: I.dice,    accent: 'var(--cyan)',   isComingSoon: true },
+      { id: 'crash',     title: lang.games.crash,     subtitle: lang.games.crashSub,    minBet: 10, icon: I.trendDown, accent: 'var(--green)', isComingSoon: true },
+      { id: 'hilo',      title: lang.games.hilo,      subtitle: lang.games.hiloSub,     minBet: 5,  icon: I.trending,accent: 'var(--gold)',   isComingSoon: true },
+    ];
+    const stats = [
+      { label: lang.dash.time, value: '2ч 47м', caption: lang.dash.today, icon: I.clock, color: 'var(--cyan)' },
+      { label: lang.dash.lost, value: '$2,840', caption: lang.dash.total, icon: I.trendDown, color: 'var(--accent)' },
+      { label: lang.dash.won,  value: '$1,620', caption: lang.dash.total, icon: I.trophy,    color: 'var(--green)' },
+    ];
+    const available = games.filter(g => !g.isComingSoon).length;
+    return (
+      <div className="container" style={{ padding: '40px 40px 80px' }}>
+        <div className="hero-deco mb-8">
+          <div className="label mb-4" style={{ color: 'var(--gold)' }}>{lang.dash.label}</div>
+          <h1 className="h-display" style={{ maxWidth: 720 }}>
+            {lang.dash.title1} <i>{lang.dash.titleItalic}</i> {lang.dash.title2}<br/>
+            {lang.dash.title3}
+          </h1>
+          <p className="p-lg mt-6" style={{ maxWidth: 560, color: 'var(--fg-2)' }}>{lang.dash.intro}</p>
+        </div>
+
+        <div className="grid gap-4 mb-12" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          {stats.map(s => (
+            <div key={s.label} className="card">
+              <div className="row between mb-4">
+                <div className="label">{s.label}</div>
+                <span style={{ color: s.color, display: 'inline-flex' }}>
+                  {React.cloneElement(s.icon, { size: 20 })}
+                </span>
+              </div>
+              <div className="mono" style={{ fontSize: 40, lineHeight: 1, fontWeight: 600,
+                                             letterSpacing: '-0.02em', color: 'var(--fg-1)' }}>
+                {s.value}
+              </div>
+              <div className="p-sm mt-2">{s.caption}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="row between mb-6">
+          <h2 className="h2">{lang.dash.sectionGames}</h2>
+          <span className="tag tag-gold">{available} {lang.dash.available}</span>
+        </div>
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          {games.map(g => <GameCard key={g.id} {...g} onClick={() => onPlay(g.id)}/>)}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Roulette (trimmed to focus on key visuals) ─────────────────────────
+  const WHEEL_NUMBERS = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+  const RED_NUMBERS = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+  const rouletteColor = n => n === 0 ? 'green' : (RED_NUMBERS.includes(n) ? 'red' : 'black');
+  const rouletteBg = n => rouletteColor(n) === 'red' ? 'var(--accent)' : rouletteColor(n) === 'green' ? 'var(--green)' : '#16111F';
+  const chipPalette = [
+    { v: 10,  bg: 'linear-gradient(135deg,#fff,#bbb)', color: '#000' },
+    { v: 25,  bg: 'linear-gradient(135deg,var(--green),#00A854)', color: '#fff' },
+    { v: 50,  bg: 'linear-gradient(135deg,var(--cyan),#0097B2)', color: '#001014' },
+    { v: 100, bg: 'linear-gradient(135deg,#222,#000)', color: 'var(--gold)' },
+    { v: 500, bg: 'linear-gradient(135deg,var(--purple),#6A1FA0)', color: '#fff' },
+    { v: 1000,bg: 'linear-gradient(135deg,var(--gold-bright),var(--gold-dim))', color: '#4A2D00' },
+  ];
+  function RouletteScreen({ balance, onBalanceChange }) {
+    const lang = React.useContext(LangCtx);
+    const t = lang.roul;
+    const [chip, setChip] = React.useState(10);
+    const [bets, setBets] = React.useState([]);
+    const [spinning, setSpinning] = React.useState(false);
+    const [recent, setRecent] = React.useState([17, 0, 32, 8, 11, 26, 3]);
+    const [result, setResult] = React.useState(null);
+    const [rotation, setRotation] = React.useState(0);
+    const totalBet = bets.reduce((s, b) => s + b.amount, 0);
+    const addBet = (type, value) => {
+      if (spinning || totalBet + chip > balance) return;
+      setBets([...bets, { type, amount: chip, value }]);
+    };
+    const spin = () => {
+      if (bets.length === 0) return;
+      setSpinning(true); setResult(null);
+      const winNum = WHEEL_NUMBERS[Math.floor(Math.random() * WHEEL_NUMBERS.length)];
+      const idx = WHEEL_NUMBERS.indexOf(winNum);
+      setRotation(r => r + 360 * 5 + idx * (360 / WHEEL_NUMBERS.length));
+      setTimeout(() => {
+        const won = bets.some(b =>
+          (b.type === 'red' && rouletteColor(winNum) === 'red') ||
+          (b.type === 'black' && rouletteColor(winNum) === 'black') ||
+          (b.type === 'straight' && b.value === winNum));
+        const payout = won ? totalBet * 2 : 0;
+        setResult({ number: winNum, profit: payout - totalBet, total_bet: totalBet, total_win: payout });
+        onBalanceChange(balance - totalBet + payout);
+        setRecent(r => [winNum, ...r].slice(0, 10));
+        setSpinning(false); setBets([]);
+      }, 3500);
+    };
+    return (
+      <div className="container" style={{ padding: '32px 40px 80px' }}>
+        <div className="row between mb-8">
+          <div>
+            <div className="label mb-2" style={{ color: 'var(--accent)' }}>{t.table}</div>
+            <h1 className="h1">{t.title}</h1>
+          </div>
+          <span className="tag tag-gold">{bets.length} {lang.common.active}</span>
+        </div>
+
+        <div className="grid gap-6" style={{ gridTemplateColumns: '1fr 2fr' }}>
+          <div className="col gap-4">
+            <div className="card" style={{ padding: 28, display: 'grid', placeItems: 'center', background: 'radial-gradient(circle at center, var(--bg-2), var(--bg-1))' }}>
+              <div style={{ position: 'relative', width: 260, height: 260 }}>
+                <div style={{
+                  position: 'absolute', inset: 0, borderRadius: '50%',
+                  background: 'radial-gradient(circle at 30% 30%, #2A1F45, #0A0710)',
+                  border: '2px solid var(--gold)',
+                  boxShadow: 'var(--glow-gold), inset 0 0 30px rgba(0,0,0,.8)',
+                  transform: `rotate(${rotation}deg)`,
+                  transition: 'transform 3.5s cubic-bezier(.17,.67,.22,1)',
+                }}>
+                  {WHEEL_NUMBERS.map((n, i) => {
+                    const angle = (360 / WHEEL_NUMBERS.length) * i;
+                    return (
+                      <div key={i} style={{ position: 'absolute', inset: 0, transform: `rotate(${angle}deg)` }}>
+                        <div style={{
+                          position: 'absolute', top: 4, left: '50%', transform: 'translateX(-50%)',
+                          width: 26, height: 26, display: 'grid', placeItems: 'center',
+                          background: rouletteBg(n),
+                          color: '#fff', fontSize: 11, fontFamily: 'var(--font-mono)',
+                          fontWeight: 600, borderRadius: 3,
+                          boxShadow: '0 0 4px rgba(0,0,0,.5)',
+                        }}>{n}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                  width: 90, height: 90, borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--gold), var(--gold-dim))',
+                  display: 'grid', placeItems: 'center',
+                  fontFamily: 'var(--font-serif)', fontSize: 32, color: '#1A0F00',
+                  boxShadow: 'var(--glow-gold)',
+                }}><i style={{ fontStyle: 'italic' }}>F</i></div>
+                <div style={{
+                  position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                  width: 0, height: 0,
+                  borderLeft: '8px solid transparent', borderRight: '8px solid transparent',
+                  borderTop: '14px solid var(--accent)',
+                  filter: 'drop-shadow(0 0 8px var(--accent))',
+                }}/>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: 20 }}>
+              <div className="label mb-3">{t.recent}</div>
+              <div className="row gap-2" style={{ flexWrap: 'wrap' }}>
+                {recent.map((n, i) => (
+                  <div key={i} style={{
+                    width: 34, height: 34, borderRadius: '50%',
+                    background: rouletteBg(n), color: '#fff',
+                    display: 'grid', placeItems: 'center',
+                    fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600,
+                    boxShadow: '0 2px 6px rgba(0,0,0,.5)',
+                  }}>{n}</div>
+                ))}
+              </div>
+            </div>
+
+            {result && (
+              <div className="card" style={{
+                padding: 20,
+                borderColor: result.profit > 0 ? 'var(--green)' : 'var(--accent)',
+                boxShadow: result.profit > 0 ? 'var(--glow-green)' : 'var(--glow-accent)',
+              }}>
+                <div className="label mb-2" style={{ color: result.profit > 0 ? 'var(--green)' : 'var(--accent)' }}>
+                  {result.profit > 0 ? t.win : t.loss}
+                </div>
+                <div className="mono" style={{
+                  fontSize: 36, fontWeight: 700, letterSpacing: '-0.02em',
+                  color: result.profit > 0 ? 'var(--green)' : 'var(--accent)',
+                  marginBottom: 12,
+                }}>
+                  {result.profit > 0 ? '+' : '−'}${Math.abs(result.profit).toLocaleString()}
+                </div>
+                <div className="col gap-1">
+                  <div className="row between"><span className="p-sm">{t.stake}</span>
+                    <span className="mono money-white" style={{ fontSize: 13 }}>${result.total_bet}</span></div>
+                  <div className="row between"><span className="p-sm">{t.payout}</span>
+                    <span className="mono money-white" style={{ fontSize: 13 }}>${result.total_win}</span></div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="card" style={{ padding: 28 }}>
+            <div className="row between mb-6">
+              <h3 className="h3">{t.bets}</h3>
+              <span className="money" style={{ fontSize: 22 }}>${totalBet.toLocaleString()}</span>
+            </div>
+
+            <div className="label mb-3">{t.chip}</div>
+            <div className="row gap-3 mb-6" style={{ flexWrap: 'wrap' }}>
+              {chipPalette.map(c => (
+                <button key={c.v} onClick={() => setChip(c.v)}
+                        className="chip"
+                        style={{
+                          background: c.bg, color: c.color,
+                          outline: chip === c.v ? '3px solid var(--gold)' : 'none',
+                          outlineOffset: 2,
+                          transform: chip === c.v ? 'scale(1.1)' : 'none',
+                          transition: 'all .15s var(--ease-spring)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,.5)',
+                        }}>
+                  {c.v >= 1000 ? '1K' : c.v}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+              <button onClick={() => addBet('straight', 0)} disabled={spinning}
+                      style={{
+                        width: 44, height: 136,
+                        background: 'linear-gradient(135deg, var(--green), #00A854)',
+                        color: '#fff', fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700,
+                        borderRadius: 'var(--radius-sm)',
+                      }}>0</button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 4, flex: 1 }}>
+                {[...Array(36)].map((_, i) => {
+                  const n = i + 1;
+                  return (
+                    <button key={n} onClick={() => addBet('straight', n)} disabled={spinning}
+                            style={{
+                              height: 42,
+                              background: rouletteColor(n) === 'red' ? 'var(--accent)' : '#16111F',
+                              color: '#fff',
+                              fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600,
+                              borderRadius: 'var(--radius-sm)',
+                              border: '1px solid var(--border-1)',
+                            }}>{n}</button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 4, marginBottom: 24 }}>
+              {[['low','1-18','var(--bg-2)'],['even',t.even,'var(--bg-2)'],
+                ['red',t.red,'var(--accent)'],['black',t.black,'#16111F'],
+                ['odd',t.odd,'var(--bg-2)'],['high','19-36','var(--bg-2)']].map(([id, label, bg]) => (
+                <button key={id} onClick={() => addBet(id)} disabled={spinning}
+                        style={{ padding: '12px 8px', background: bg, color: '#fff',
+                                 fontSize: 12, fontWeight: 600, borderRadius: 'var(--radius-sm)',
+                                 border: '1px solid var(--border-1)' }}>{label}</button>
+              ))}
+            </div>
+
+            <div className="row gap-2">
+              <button className="btn btn-secondary flex-1"
+                      onClick={() => { setBets([]); setResult(null); }}
+                      disabled={spinning || bets.length === 0}>
+                {lang.common.clear}
+              </button>
+              <button className="btn btn-primary flex-1"
+                      onClick={spin} disabled={spinning || bets.length === 0}>
+                {spinning ? lang.common.spinning : lang.common.launch}
+                {!spinning && I.arrowR}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Slots ──────────────────────────────────────────────────────────────
+  const SLOT_SYMBOLS = [
+    { id: 'cherry', label: '♥', color: 'var(--accent)' },
+    { id: 'club',   label: '♣', color: 'var(--fg-1)' },
+    { id: 'diamond',label: '♦', color: 'var(--cyan)' },
+    { id: 'spade',  label: '♠', color: 'var(--purple)' },
+    { id: 'bell',   label: '★', color: 'var(--gold)' },
+    { id: 'F',      label: 'F', color: 'var(--gold-bright)' },
+    { id: '7',      label: '7', color: 'var(--accent-bright)' },
+  ];
+  const randSym = () => SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+  const randReel = () => [randSym(), randSym(), randSym()];
+
+  function SlotsScreen({ balance, onBalanceChange }) {
+    const lang = React.useContext(LangCtx);
+    const t = lang.slots;
+    const [reels, setReels] = React.useState([randReel(), randReel(), randReel(), randReel(), randReel()]);
+    const [bet, setBet] = React.useState(10);
+    const [spinning, setSpinning] = React.useState(false);
+    const [winAmount, setWinAmount] = React.useState(0);
+    const [message, setMessage] = React.useState('');
+    const BETS = [5, 10, 25, 50, 100];
+
+    const spin = () => {
+      if (spinning || balance < bet) return;
+      setSpinning(true); setWinAmount(0); setMessage('');
+      const final = [randReel(), randReel(), randReel(), randReel(), randReel()];
+      const mid = final.map(r => r[1].id);
+      const allSame = mid.every(s => s === mid[0]);
+      const threeSame = mid[0] === mid[1] && mid[1] === mid[2];
+      let ticks = 0;
+      const id = setInterval(() => {
+        setReels([randReel(), randReel(), randReel(), randReel(), randReel()]);
+        ticks++;
+        if (ticks >= 14) {
+          clearInterval(id);
+          setReels(final);
+          const win = allSame ? bet * 50 : threeSame ? bet * 5 : 0;
+          setWinAmount(win);
+          setMessage(win > 0 ? '' : t.miss);
+          onBalanceChange(balance - bet + win);
+          setSpinning(false);
+        }
+      }, 80);
+    };
+    const isWinner = ri => !spinning && winAmount > 0 && ri < 3;
+
+    return (
+      <div className="container" style={{ padding: '32px 40px 80px', maxWidth: 940 }}>
+        <div className="row between mb-8">
+          <div>
+            <div className="label mb-2" style={{ color: 'var(--gold)' }}>{t.machine}</div>
+            <h1 className="h1">{t.title}</h1>
+          </div>
+        </div>
+
+        <div className="card-glow" style={{ padding: 40,
+              background: 'linear-gradient(180deg, var(--bg-1), var(--bg-0))',
+              border: '2px solid var(--gold-dim)',
+              boxShadow: 'var(--glow-gold)' }}>
+          {/* Reels */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10,
+            marginBottom: 32, padding: 24,
+            background: 'radial-gradient(circle at center, #16111F, #0A0710)',
+            borderRadius: 'var(--radius-md)', border: '1px solid var(--gold-dim)',
+            boxShadow: 'inset 0 4px 20px rgba(0,0,0,.8)',
+          }}>
+            {reels.map((reel, ri) => (
+              <div key={ri} className="col gap-2">
+                {reel.map((s, si) => (
+                  <div key={si}
+                       className={`reel-cell ${si === 1 && isWinner(ri) ? 'winner' : ''}`}
+                       style={{
+                         aspectRatio: '1 / 1', display: 'grid', placeItems: 'center',
+                         background: si === 1
+                           ? 'linear-gradient(135deg, var(--bg-3), var(--bg-2))'
+                           : 'var(--bg-1)',
+                         border: '1px solid var(--border-1)',
+                         borderRadius: 'var(--radius-sm)',
+                         fontFamily: 'var(--font-serif)',
+                         fontSize: 52, fontWeight: 400, color: s.color,
+                         letterSpacing: '-0.02em',
+                         fontStyle: (s.id === 'F') ? 'italic' : 'normal',
+                         transition: 'opacity .1s var(--ease)',
+                         opacity: spinning ? 0.7 : 1,
+                         textShadow: si === 1 ? `0 0 12px ${s.color}` : 'none',
+                       }}>{s.label}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Result + balance */}
+          <div className="row between mb-6" style={{ padding: '0 8px' }}>
+            <div>
+              <div className="label mb-2">{t.result}</div>
+              <div className="mono" style={{
+                fontSize: 34, lineHeight: 1, fontWeight: 700,
+                letterSpacing: '-0.02em',
+                color: winAmount > 0 ? 'var(--green)' : 'var(--fg-3)',
+                textShadow: winAmount > 0 ? 'var(--glow-green)' : 'none',
+              }}>
+                {winAmount > 0 ? `+$${winAmount.toLocaleString()}` : message || '—'}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="label mb-2">{lang.common.balance}</div>
+              <div className="money" style={{ fontSize: 34, lineHeight: 1 }}>
+                ${balance.toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          <div className="row between gap-4">
+            <div className="flex-1">
+              <div className="label mb-2">{lang.common.bet}</div>
+              <div className="row gap-2">
+                {BETS.map(v => (
+                  <button key={v} onClick={() => setBet(v)} disabled={spinning}
+                          style={{
+                            padding: '10px 16px',
+                            background: bet === v
+                              ? 'linear-gradient(135deg, var(--gold), var(--gold-dim))'
+                              : 'var(--bg-2)',
+                            color: bet === v ? '#1A0F00' : 'var(--fg-2)',
+                            fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600,
+                            border: '1px solid var(--border-1)',
+                            borderRadius: 'var(--radius-md)',
+                            boxShadow: bet === v ? 'var(--glow-gold)' : 'none',
+                          }}>${v}</button>
+                ))}
+              </div>
+            </div>
+            <button onClick={spin} disabled={spinning || balance < bet}
+                    className="btn btn-primary btn-xl"
+                    style={{ minWidth: 220 }}>
+              {spinning ? lang.common.spinning : `${lang.common.spin} · $${bet}`}
+              {!spinning && I.play}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 mt-6" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          {[
+            { label: t.jackpot5, multi: '×50', hint: t.jackpotHint, color: 'var(--gold)' },
+            { label: t.three,   multi: '×5',  hint: t.medium,       color: 'var(--cyan)' },
+            { label: t.two,     multi: '—',   hint: t.nothing,      color: 'var(--fg-3)' },
+          ].map(p => (
+            <div key={p.label} className="card">
+              <div className="label mb-2">{p.label}</div>
+              <div className="mono" style={{ fontSize: 26, fontWeight: 700, color: p.color,
+                    letterSpacing: '-0.02em' }}>{p.multi}</div>
+              <div className="p-sm mt-2">{p.hint}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Shop ────────────────────────────────────────────────────────────────
+  function shopItems(lang) {
+    const t = lang.shop; // unused but kept for symmetry
+    return [
+      { id: '1', name: 'Ferrari F8',       description: lang.code === 'ru' ? 'Tributo V8 купе' : lang.code === 'es' ? 'Coupé V8 Tributo' : 'Tributo V8 coupe',   price: 280000, tier: 'legendary', type: 'car',         image_url: './shop_images/ferrari-f8.jpg' },
+      { id: '2', name: 'Tesla Model S',    description: lang.code === 'ru' ? 'Электрический седан' : lang.code === 'es' ? 'Sedán eléctrico' : 'Electric luxury sedan', price: 95000, tier: 'epic', type: 'car', image_url: './shop_images/tesla-model-s.jpg' },
+      { id: '3', name: lang.code === 'ru' ? 'Швейцарские часы' : lang.code === 'es' ? 'Reloj suizo' : 'Swiss watch',              description: lang.code === 'ru' ? 'Механика, сталь' : lang.code === 'es' ? 'Mecánico de acero' : 'Mechanical, steel case', price: 12500, tier: 'rare', type: 'accessories', image_url: './shop_images/luxury-watch.jpg' },
+      { id: '4', name: lang.code === 'ru' ? 'Бриллиантовое кольцо' : lang.code === 'es' ? 'Anillo de diamante' : 'Diamond ring', description: lang.code === 'ru' ? 'Один камень' : lang.code === 'es' ? 'Una piedra' : 'Brilliant cut', price: 8400, tier: 'rare', type: 'accessories', image_url: './shop_images/diamond-ring.jpg' },
+      { id: '5', name: lang.code === 'ru' ? 'Деловой костюм' : lang.code === 'es' ? 'Traje de negocios' : 'Business suit', description: lang.code === 'ru' ? 'Шерсть, двойка' : lang.code === 'es' ? 'Lana, dos piezas' : 'Two-piece wool',           price: 1200,   tier: 'common',    type: 'clothing',    image_url: './shop_images/business-suit.jpg' },
+      { id: '6', name: lang.code === 'ru' ? 'Вечернее платье' : lang.code === 'es' ? 'Vestido de noche' : 'Evening dress', description: lang.code === 'ru' ? 'Шёлк' : lang.code === 'es' ? 'Seda' : 'Silk',                                     price: 3200,   tier: 'epic',      type: 'clothing',    image_url: './shop_images/designer-dress.jpg' },
+      { id: '7', name: lang.code === 'ru' ? 'Худи' : lang.code === 'es' ? 'Sudadera' : 'Hoodie',                           description: lang.code === 'ru' ? 'Хлопок, на каждый день' : lang.code === 'es' ? 'Algodón, diario' : 'Cotton, everyday', price: 80,    tier: 'common',    type: 'clothing' },
+      { id: '8', name: lang.code === 'ru' ? 'Загородная вилла' : lang.code === 'es' ? 'Villa costera' : 'Country villa',   description: lang.code === 'ru' ? 'Поместье у моря, 6 спален' : lang.code === 'es' ? 'Finca junto al mar, 6 habitaciones' : 'Seaside estate, 6 bedrooms', price: 890000, tier: 'legendary', type: 'house' },
+    ];
+  }
+  const TIER_COLOR = { common: 'var(--tier-common)', rare: 'var(--tier-rare)',
+                       epic: 'var(--tier-epic)', legendary: 'var(--tier-legendary)' };
+  const TIER_LABEL = { common: 'Common', rare: 'Rare', epic: 'Epic', legendary: 'Legendary' };
+
+  function ItemCard({ item, owned, onBuy, canAfford }) {
+    const lang = React.useContext(LangCtx);
+    const [imgOk, setImgOk] = React.useState(!!item.image_url);
+    return (
+      <div className="card-interactive" style={{ padding: 0, overflow: 'hidden',
+            display: 'flex', flexDirection: 'column' }}>
+        <div style={{ aspectRatio: '4 / 3', position: 'relative',
+            background: 'var(--bg-2)', display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
+          {item.image_url && imgOk ? (
+            <img src={item.image_url} alt={item.name} onError={() => setImgOk(false)}
+                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+          ) : (
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 64,
+                  color: 'var(--fg-3)', fontStyle: 'italic' }}>{item.name[0]}</div>
+          )}
+          <div style={{ position: 'absolute', inset: 0,
+                background: 'linear-gradient(to top, rgba(10,7,16,.8), transparent 50%)' }}/>
+          <div style={{
+            position: 'absolute', top: 12, left: 12, padding: '4px 10px',
+            background: 'rgba(10,7,16,.75)', backdropFilter: 'blur(8px)',
+            borderRadius: 'var(--radius-full)',
+            fontSize: 10, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase',
+            color: TIER_COLOR[item.tier],
+            border: `1px solid ${TIER_COLOR[item.tier]}40`,
+          }}>{TIER_LABEL[item.tier]}</div>
+          {owned && (
+            <div style={{ position: 'absolute', top: 12, right: 12, padding: '4px 10px',
+                background: 'var(--green)', color: '#001B0F', borderRadius: 'var(--radius-full)',
+                fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase',
+                boxShadow: 'var(--glow-green)' }}>{lang.common.owned}</div>
+          )}
+        </div>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
+          <div>
+            <div className="h3" style={{ fontSize: 17, marginBottom: 4 }}>{item.name}</div>
+            <div className="p-sm" style={{ fontSize: 13 }}>{item.description}</div>
+          </div>
+          <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div className="label" style={{ fontSize: 10 }}>{lang.shop.price}</div>
+              <div className="money" style={{ fontSize: 20 }}>${item.price.toLocaleString()}</div>
+            </div>
+            <button onClick={() => !owned && onBuy(item)} disabled={owned || !canAfford}
+                    className={owned ? 'btn btn-ghost' : 'btn btn-primary'}
+                    style={{ padding: '9px 16px', fontSize: 13 }}>
+              {owned ? (<>{lang.common.owned} {I.check}</>) : !canAfford ? lang.common.cantAfford : lang.common.buy}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function Shop({ balance, onBalanceChange }) {
+    const lang = React.useContext(LangCtx);
+    const [owned, setOwned] = React.useState(new Set(['3']));
+    const [filter, setFilter] = React.useState('all');
+    const items = shopItems(lang).filter(i => filter === 'all' || i.type === filter);
+    const buy = (item) => {
+      if (owned.has(item.id) || balance < item.price) return;
+      onBalanceChange(balance - item.price);
+      setOwned(new Set([...owned, item.id]));
+    };
+    const filters = [
+      { id: 'all', label: lang.shop.all }, { id: 'car', label: lang.shop.cars },
+      { id: 'clothing', label: lang.shop.clothing }, { id: 'accessories', label: lang.shop.accessories },
+      { id: 'house', label: lang.shop.houses },
+    ];
+    return (
+      <div className="container" style={{ padding: '32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color: 'var(--gold)' }}>{lang.nav.shop}</div>
+          <h1 className="h1 mb-4">{lang.shop.title}</h1>
+          <p className="p-lg" style={{ maxWidth: 540 }}>{lang.shop.intro}</p>
+        </div>
+        <div className="row gap-2 mb-8" style={{ flexWrap: 'wrap' }}>
+          {filters.map(f => (
+            <button key={f.id} onClick={() => setFilter(f.id)}
+                    style={{
+                      padding: '9px 18px', borderRadius: 'var(--radius-full)',
+                      background: filter === f.id
+                        ? 'linear-gradient(135deg, var(--gold), var(--gold-dim))'
+                        : 'transparent',
+                      color: filter === f.id ? '#1A0F00' : 'var(--fg-2)',
+                      border: `1px solid ${filter === f.id ? 'var(--gold)' : 'var(--border-1)'}`,
+                      fontSize: 13, fontWeight: 600,
+                      transition: 'all .15s var(--ease)',
+                      boxShadow: filter === f.id ? 'var(--glow-gold)' : 'none',
+                    }}>{f.label}</button>
+          ))}
+        </div>
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          {items.map(item => (
+            <ItemCard key={item.id} item={item} owned={owned.has(item.id)}
+                      canAfford={balance >= item.price} onBuy={buy}/>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Credit ──────────────────────────────────────────────────────────────
+  function CreditScreen({ balance, onBalanceChange }) {
+    const lang = React.useContext(LangCtx);
+    const t = lang.credit;
+    const [owed, setOwed] = React.useState(2400);
+    const [selected, setSelected] = React.useState(1);
+    const offers = [
+      { id: 0, amount: 500,   rate: 3,  days: 7,  tier: 'common' },
+      { id: 1, amount: 2500,  rate: 5,  days: 14, tier: 'rare',      featured: true },
+      { id: 2, amount: 10000, rate: 8,  days: 30, tier: 'epic' },
+      { id: 3, amount: 50000, rate: 12, days: 60, tier: 'legendary', risky: true },
+    ];
+    const totalRepay = o => Math.round(o.amount * (1 + o.rate * o.days / 100));
+    const take = o => { onBalanceChange(balance + o.amount); setOwed(v => v + totalRepay(o)); };
+    const repay = () => {
+      const amt = Math.min(owed, balance);
+      onBalanceChange(balance - amt); setOwed(v => v - amt);
+    };
+    return (
+      <div className="container" style={{ padding: '32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color: 'var(--accent)' }}>{t.label}</div>
+          <h1 className="h1 mb-4">{t.title}</h1>
+          <p className="p-lg" style={{ maxWidth: 540 }}>{t.sub}</p>
+        </div>
+
+        <div className="grid gap-4 mb-8" style={{ gridTemplateColumns: '2fr 1fr' }}>
+          <div className="card" style={{
+                background: 'linear-gradient(135deg, rgba(255,46,99,.08), rgba(179,68,255,.08))',
+                borderColor: 'rgba(255,46,99,.3)' }}>
+            <div className="label mb-2" style={{ color: 'var(--accent-bright)' }}>{t.taken}</div>
+            <div className="mono" style={{ fontSize: 64, fontWeight: 700, lineHeight: 1,
+                  letterSpacing: '-0.03em',
+                  color: 'var(--accent-bright)',
+                  textShadow: 'var(--glow-accent)' }}>
+              ${owed.toLocaleString()}
+            </div>
+            <div className="row gap-4 mt-6">
+              <button onClick={repay} disabled={owed === 0 || balance === 0}
+                      className="btn btn-danger btn-lg">
+                {t.repay} {I.arrowR}
+              </button>
+              <div className="col">
+                <span className="label">{lang.common.balance}</span>
+                <span className="money">${balance.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="row gap-3 mb-4" style={{ color: 'var(--accent-bright)' }}>
+              {I.flame}<span className="label" style={{ color: 'inherit' }}>Warning</span>
+            </div>
+            <p className="p-sm" style={{ lineHeight: 1.55, color: 'var(--fg-2)' }}>{t.warning}</p>
+          </div>
+        </div>
+
+        <h3 className="h3 mb-4">{t.offers}</h3>
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          {offers.map(o => {
+            const repayAmt = totalRepay(o);
+            const isSelected = o.id === selected;
+            return (
+              <div key={o.id} onClick={() => setSelected(o.id)}
+                   className="card-interactive"
+                   style={{ padding: 24,
+                     borderColor: isSelected ? TIER_COLOR[o.tier] : undefined,
+                     boxShadow: isSelected ? `0 0 0 1px ${TIER_COLOR[o.tier]}, 0 12px 32px ${TIER_COLOR[o.tier]}30` : undefined,
+                     position: 'relative' }}>
+                {o.featured && <span className="tag tag-gold" style={{ position: 'absolute', top: 12, right: 12 }}>★</span>}
+                {o.risky && <span className="tag tag-accent" style={{ position: 'absolute', top: 12, right: 12 }}>{I.flame}</span>}
+                <div className="label mb-2" style={{ color: TIER_COLOR[o.tier] }}>{TIER_LABEL[o.tier]}</div>
+                <div className="money" style={{ fontSize: 28, lineHeight: 1.1, color: TIER_COLOR[o.tier] }}>
+                  ${o.amount.toLocaleString()}
+                </div>
+                <div className="col gap-2 mt-4" style={{ fontSize: 12, color: 'var(--fg-3)' }}>
+                  <div className="row between">
+                    <span>{t.rate}</span>
+                    <span className="mono" style={{ color: 'var(--fg-1)' }}>{o.rate}{t.perDay}</span>
+                  </div>
+                  <div className="row between">
+                    <span>{t.days}</span>
+                    <span className="mono" style={{ color: 'var(--fg-1)' }}>{o.days}d</span>
+                  </div>
+                  <div className="row between" style={{ paddingTop: 8, borderTop: '1px solid var(--border-1)' }}>
+                    <span>{t.totalToRepay}</span>
+                    <span className="mono" style={{ color: 'var(--accent-bright)', fontWeight: 700 }}>${repayAmt.toLocaleString()}</span>
+                  </div>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); take(o); }}
+                        className="btn btn-primary btn-block mt-4"
+                        style={{ fontSize: 13 }}>{t.take}</button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Profile ─────────────────────────────────────────────────────────────
+  function ProfileScreen({ balance }) {
+    const lang = React.useContext(LangCtx);
+    const t = lang.profile;
+    const level = 7;
+    const xpPct = 64;
+    const stats = [
+      { label: t.biggestWin,  value: '+$4,200', color: 'var(--green)', icon: I.trophy },
+      { label: t.biggestLoss, value: '−$8,500', color: 'var(--accent)', icon: I.trendDown },
+      { label: t.favGame,     value: lang.games.roulette, color: 'var(--gold)', icon: I.target },
+      { label: t.sessions,    value: '34', color: 'var(--cyan)', icon: I.refresh },
+      { label: t.totalTime,   value: '47h 21m', color: 'var(--purple)', icon: I.clock },
+    ];
+    const achievements = [
+      { id: 1, name: lang.code === 'ru' ? 'Первые $1 000 проиграны' : lang.code === 'es' ? 'Primeros $1,000 perdidos' : 'First $1,000 lost', icon: I.flame, color: 'var(--accent)', unlocked: true },
+      { id: 2, name: lang.code === 'ru' ? '3 часа за автоматом' : lang.code === 'es' ? '3 horas con tragaperras' : '3 hours at the slots', icon: I.clock, color: 'var(--cyan)', unlocked: true },
+      { id: 3, name: lang.code === 'ru' ? 'Первая покупка в магазине' : lang.code === 'es' ? 'Primera compra' : 'First shop purchase', icon: I.bag, color: 'var(--gold)', unlocked: true },
+      { id: 4, name: lang.code === 'ru' ? 'Джекпот в слотах' : lang.code === 'es' ? 'Jackpot en tragaperras' : 'Slot jackpot', icon: I.zap, color: 'var(--gold)', unlocked: false },
+      { id: 5, name: lang.code === 'ru' ? 'Погасить все долги' : lang.code === 'es' ? 'Pagar todas las deudas' : 'Repay all debt', icon: I.check, color: 'var(--green)', unlocked: false },
+      { id: 6, name: lang.code === 'ru' ? '10 смен работы' : lang.code === 'es' ? '10 turnos de trabajo' : '10 work shifts', icon: I.briefcase, color: 'var(--purple)', unlocked: false },
+    ];
+    return (
+      <div className="container" style={{ padding: '32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color: 'var(--gold)' }}>{lang.nav.profile}</div>
+          <h1 className="h1">{t.title}</h1>
+        </div>
+
+        <div className="card-glow mb-8" style={{ padding: 32 }}>
+          <div className="row gap-6" style={{ alignItems: 'flex-start' }}>
+            <div style={{
+                width: 104, height: 104, borderRadius: '50%',
+                background: 'linear-gradient(135deg, var(--gold), var(--accent))',
+                padding: 3, flexShrink: 0 }}>
+              <div style={{ width: '100%', height: '100%', borderRadius: '50%',
+                    background: 'var(--bg-2)', display: 'grid', placeItems: 'center',
+                    fontFamily: 'var(--font-serif)', fontSize: 44, fontStyle: 'italic',
+                    color: 'var(--gold)' }}>I</div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div className="row gap-3 mb-2" style={{ alignItems: 'baseline' }}>
+                <h2 className="h2">igrok_1985</h2>
+                <span className="tag tag-gold">Lv {level}</span>
+              </div>
+              <p className="p-sm mb-4">{t.joined} · Jan 2024</p>
+              <div className="row between mb-2">
+                <span className="label">{t.xp}</span>
+                <span className="mono" style={{ fontSize: 12, color: 'var(--fg-2)' }}>
+                  {xpPct}% → Lv {level + 1}
+                </span>
+              </div>
+              <div className="bar"><div className="bar-fill" style={{ width: `${xpPct}%` }}/></div>
+            </div>
+          </div>
+        </div>
+
+        <h3 className="h3 mb-4">{t.stats}</h3>
+        <div className="grid gap-4 mb-8" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+          {stats.map(s => (
+            <div key={s.label} className="card" style={{ padding: 20 }}>
+              <div style={{ color: s.color, marginBottom: 10 }}>
+                {React.cloneElement(s.icon, { size: 20 })}
+              </div>
+              <div className="label mb-2">{s.label}</div>
+              <div className="mono" style={{ fontSize: 20, fontWeight: 600,
+                  color: 'var(--fg-1)', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
+                {s.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <h3 className="h3 mb-4">{t.achievements}</h3>
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          {achievements.map(a => (
+            <div key={a.id} className="card"
+                 style={{ padding: 20, opacity: a.unlocked ? 1 : 0.4,
+                          borderColor: a.unlocked ? a.color + '40' : undefined,
+                          background: a.unlocked
+                            ? `linear-gradient(135deg, ${a.color}10, var(--bg-1))`
+                            : 'var(--bg-1)' }}>
+              <div className="row gap-3">
+                <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)',
+                      background: a.unlocked ? a.color + '20' : 'var(--bg-2)',
+                      color: a.unlocked ? a.color : 'var(--fg-4)',
+                      display: 'grid', placeItems: 'center' }}>
+                  {a.unlocked ? React.cloneElement(a.icon, { size: 18 }) : I.lock}
+                </div>
+                <div className="flex-1">
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--fg-1)' }}>{a.name}</div>
+                  <div className="p-sm" style={{ fontSize: 12 }}>
+                    {a.unlocked ? (lang.code === 'ru' ? 'Открыто' : lang.code === 'es' ? 'Desbloqueado' : 'Unlocked')
+                                : (lang.code === 'ru' ? 'Закрыто' : lang.code === 'es' ? 'Bloqueado' : 'Locked')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Work ────────────────────────────────────────────────────────────────
+  function WorkScreen({ balance, onBalanceChange }) {
+    const lang = React.useContext(LangCtx);
+    const t = lang.work;
+    const [cooldown, setCooldown] = React.useState(127);
+    const [totalEarned, setTotalEarned] = React.useState(3500);
+    const [shifts, setShifts] = React.useState(7);
+    const [activeJob, setActiveJob] = React.useState(1);
+    const jobs = [
+      { id: 0, name: lang.code === 'ru' ? 'Курьер' : lang.code === 'es' ? 'Repartidor' : 'Courier', pay: 200, time: 2, icon: I.briefcase },
+      { id: 1, name: lang.code === 'ru' ? 'Официант' : lang.code === 'es' ? 'Camarero' : 'Waiter', pay: 500, time: 3, icon: I.user, active: true },
+      { id: 2, name: lang.code === 'ru' ? 'Программист' : lang.code === 'es' ? 'Programador' : 'Programmer', pay: 2000, time: 8, icon: I.zap, locked: true, req: 'Lv 10' },
+      { id: 3, name: lang.code === 'ru' ? 'Финансист' : lang.code === 'es' ? 'Financiero' : 'Financier', pay: 8000, time: 20, icon: I.wallet, locked: true, req: 'Lv 20' },
+    ];
+    React.useEffect(() => {
+      if (cooldown <= 0) return;
+      const id = setTimeout(() => setCooldown(v => Math.max(0, v - 1)), 1000);
+      return () => clearTimeout(id);
+    }, [cooldown]);
+    const job = jobs[activeJob];
+    const totalSec = job.time * 60;
+    const pct = Math.min(100, ((totalSec - cooldown) / totalSec) * 100);
+    const canClaim = cooldown === 0;
+    const claim = () => {
+      if (!canClaim) return;
+      onBalanceChange(balance + job.pay);
+      setTotalEarned(v => v + job.pay);
+      setShifts(v => v + 1);
+      setCooldown(totalSec);
+    };
+    const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+    return (
+      <div className="container" style={{ padding: '32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color: 'var(--green)' }}>{t.label}</div>
+          <h1 className="h1 mb-4">{t.title}</h1>
+          <p className="p-lg" style={{ maxWidth: 540 }}>{t.sub}</p>
+        </div>
+
+        <div className="grid gap-4 mb-8" style={{ gridTemplateColumns: '2fr 1fr 1fr' }}>
+          <div className="card-glow" style={{ padding: 32,
+                background: 'linear-gradient(135deg, rgba(0,230,118,.08), rgba(0,229,255,.08))',
+                borderColor: 'rgba(0,230,118,.3)' }}>
+            <div className="label mb-2" style={{ color: 'var(--green)' }}>{t.current} · {job.name}</div>
+            <div className="row between mt-4" style={{ alignItems: 'flex-end' }}>
+              <div>
+                <div className="label mb-2">{t.cooldown}</div>
+                <div className="mono" style={{ fontSize: 56, fontWeight: 700, lineHeight: 1,
+                      letterSpacing: '-0.02em',
+                      color: canClaim ? 'var(--green)' : 'var(--fg-1)',
+                      textShadow: canClaim ? 'var(--glow-green)' : 'none' }}>
+                  {canClaim ? 'READY' : fmt(cooldown)}
+                </div>
+              </div>
+              <button onClick={claim} disabled={!canClaim}
+                      className={canClaim ? 'btn btn-primary btn-xl' : 'btn btn-secondary btn-lg'}>
+                {t.claim} · ${job.pay}
+                {canClaim && I.arrowR}
+              </button>
+            </div>
+            <div className="mt-6">
+              <div className="bar"><div className="bar-fill success" style={{ width: `${pct}%` }}/></div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="label mb-2" style={{ color: 'var(--gold)' }}>{t.claimed}</div>
+            <div className="money" style={{ fontSize: 32, lineHeight: 1 }}>
+              ${totalEarned.toLocaleString()}
+            </div>
+            <div className="p-sm mt-4" style={{ color: 'var(--fg-3)' }}>
+              vs. $2,840 {lang.dash.lost.toLowerCase()}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="label mb-2" style={{ color: 'var(--cyan)' }}>{t.sessions}</div>
+            <div className="mono" style={{ fontSize: 32, fontWeight: 700, color: 'var(--fg-1)',
+                  letterSpacing: '-0.02em', lineHeight: 1 }}>{shifts}</div>
+            <div className="p-sm mt-4">{t.sessions.toLowerCase()}</div>
+          </div>
+        </div>
+
+        <h3 className="h3 mb-4">{t.jobs}</h3>
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          {jobs.map(j => {
+            const isActive = j.id === activeJob;
+            const isLocked = j.locked;
+            return (
+              <div key={j.id}
+                   onClick={() => !isLocked && setActiveJob(j.id)}
+                   className="card-interactive"
+                   style={{ padding: 24, opacity: isLocked ? 0.5 : 1,
+                            cursor: isLocked ? 'not-allowed' : 'pointer',
+                            borderColor: isActive ? 'var(--green)' : undefined,
+                            boxShadow: isActive ? 'var(--glow-green)' : undefined }}>
+                <div className="row between mb-4">
+                  <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)',
+                        background: isLocked ? 'var(--bg-2)' : 'var(--green-soft)',
+                        color: isLocked ? 'var(--fg-4)' : 'var(--green)',
+                        display: 'grid', placeItems: 'center' }}>
+                    {isLocked ? I.lock : j.icon}
+                  </div>
+                  {isActive && <span className="tag tag-green">{lang.common.active}</span>}
+                  {isLocked && <span className="tag">{j.req}</span>}
+                </div>
+                <div className="h3" style={{ fontSize: 16, marginBottom: 8 }}>{j.name}</div>
+                <div className="row between" style={{ paddingTop: 12, borderTop: '1px solid var(--border-1)' }}>
+                  <span className="label">{t.earn}</span>
+                  <span className="money" style={{ fontSize: 15 }}>${j.pay}</span>
+                </div>
+                <div className="row between mt-2">
+                  <span className="label">Time</span>
+                  <span className="mono" style={{ fontSize: 13, color: 'var(--fg-2)' }}>{j.time} min</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Stats / Odds ────────────────────────────────────────────────────────
+  function StatsScreen() {
+    const lang = React.useContext(LangCtx);
+    const t = lang.stats;
+    const rows = [
+      { game: lang.games.slots,     rtp: 88, edge: 12, perHour: 360, icon: I.dice,     color: 'var(--gold)' },
+      { game: lang.games.roulette,  rtp: 97.3, edge: 2.7, perHour: 81, icon: I.refresh, color: 'var(--accent)' },
+      { game: lang.games.blackjack, rtp: 99.5, edge: 0.5, perHour: 15, icon: I.spade,    color: 'var(--purple)' },
+      { game: lang.games.craps,     rtp: 98.6, edge: 1.4, perHour: 42, icon: I.dice,     color: 'var(--cyan)' },
+      { game: lang.games.hilo,      rtp: 96, edge: 4,   perHour: 120, icon: I.trending,  color: 'var(--gold-bright)' },
+    ];
+    return (
+      <div className="container" style={{ padding: '32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color: 'var(--cyan)' }}>{t.label}</div>
+          <h1 className="h1 mb-4">{t.title}</h1>
+          <p className="p-lg" style={{ maxWidth: 600 }}>{t.sub}</p>
+        </div>
+
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '2fr 1fr 1fr 1.5fr 2fr',
+            padding: '16px 24px',
+            borderBottom: '1px solid var(--border-1)',
+            background: 'var(--bg-2)',
+          }}>
+            {[t.game, t.rtp, t.edge, t.perHour, ''].map((h, i) => (
+              <div key={i} className="label" style={{ letterSpacing: '.1em' }}>{h}</div>
+            ))}
+          </div>
+          {rows.map((r, i) => {
+            const rtpPct = r.rtp;
+            return (
+              <div key={r.game} style={{
+                    display: 'grid',
+                    gridTemplateColumns: '2fr 1fr 1fr 1.5fr 2fr',
+                    padding: '20px 24px',
+                    alignItems: 'center',
+                    borderBottom: i < rows.length - 1 ? '1px solid var(--border-1)' : undefined,
+                  }}>
+                <div className="row gap-3">
+                  <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-md)',
+                        background: 'var(--bg-2)', color: r.color,
+                        display: 'grid', placeItems: 'center' }}>
+                    {React.cloneElement(r.icon, { size: 18 })}
+                  </div>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--fg-1)' }}>{r.game}</span>
+                </div>
+                <div className="mono" style={{ fontSize: 15, color: 'var(--fg-1)', fontWeight: 600 }}>
+                  {r.rtp}%
+                </div>
+                <div className="mono" style={{ fontSize: 15, color: 'var(--accent-bright)', fontWeight: 600 }}>
+                  {r.edge}%
+                </div>
+                <div className="mono" style={{ fontSize: 15, color: 'var(--accent-bright)', fontWeight: 600 }}>
+                  −${r.perHour}
+                </div>
+                <div className="bar" style={{ width: '100%' }}>
+                  <div className="bar-fill danger" style={{ width: `${100 - rtpPct}%` }}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="card mt-6" style={{
+              background: 'linear-gradient(135deg, rgba(255,46,99,.06), rgba(179,68,255,.06))',
+              borderColor: 'rgba(255,46,99,.3)', padding: 28 }}>
+          <div className="row gap-3 mb-3" style={{ color: 'var(--accent-bright)' }}>
+            {I.zap}<span className="label" style={{ color: 'inherit' }}>Reality check</span>
+          </div>
+          <p className="p-lg" style={{ margin: 0, color: 'var(--fg-1)' }}>{t.note}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Bottom Nav (mobile) ────────────────────────────────────────────────
+  function BottomNav({ active, onNav }) {
+    const lang = React.useContext(LangCtx);
+    const [moreOpen, setMoreOpen] = React.useState(false);
+    const primary = [
+      { id: 'dashboard', label: lang.nav.games,   icon: I.dice },
+      { id: 'shop',      label: lang.nav.shop,    icon: I.bag },
+      { id: 'work',      label: lang.nav.work,    icon: I.briefcase },
+      { id: 'profile',   label: lang.nav.profile, icon: I.user },
+    ];
+    const more = [
+      { id: 'credit', label: lang.nav.credit, icon: I.credit },
+      { id: 'stats',  label: lang.nav.stats,  icon: I.trending },
+    ];
+    const isInMore = more.some(m => m.id === active);
+    return (
+      <>
+        <nav className="bottom-nav">
+          {primary.map(item => (
+            <button key={item.id}
+                    className={`bottom-nav-item ${active === item.id ? 'active' : ''}`}
+                    onClick={() => onNav(item.id)}>
+              {React.cloneElement(item.icon, { size: 22 })}
+              <span>{item.label}</span>
+            </button>
+          ))}
+          <button className={`bottom-nav-item ${isInMore ? 'active' : ''}`}
+                  onClick={() => setMoreOpen(true)}>
+            {I.chevDown}
+            <span>{lang.nav.other}</span>
+          </button>
+        </nav>
+        {moreOpen && (
+          <>
+            <div className="mobile-more-backdrop" onClick={() => setMoreOpen(false)}/>
+            <div className="mobile-more-sheet">
+              <div className="sheet-handle"/>
+              <div className="label mb-2" style={{ padding: '0 12px' }}>{lang.nav.other}</div>
+              {more.map(item => (
+                <button key={item.id}
+                        className={`sheet-item ${active === item.id ? 'active' : ''}`}
+                        onClick={() => { onNav(item.id); setMoreOpen(false); }}>
+                  <span className="sheet-icon">{item.icon}</span>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {active === item.id && I.check}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </>
+    );
+  }
+
+  // ─── App Root ────────────────────────────────────────────────────────────
+  function App() {
+    const [lang, setLang] = React.useState(TRANSLATIONS.ru);
+    const [loggedIn, setLoggedIn] = React.useState(true);
+    const [route, setRoute] = React.useState('dashboard');
+    const [balance, setBalance] = React.useState(2500);
+    const losingRate = 0.0427;
+
+    if (!loggedIn) {
+      return (
+        <LangCtx.Provider value={lang}>
+          <LoginScreen onLogin={() => setLoggedIn(true)} lang={lang} onLangChange={setLang}/>
+        </LangCtx.Provider>
+      );
+    }
+    return (
+      <LangCtx.Provider value={lang}>
+        <div className="app">
+          <Sidebar active={route} onNav={setRoute}/>
+          <BottomNav active={route} onNav={setRoute}/>
+          <div className="main">
+            <Header balance={balance} losingRate={losingRate}
+                    onLogout={() => setLoggedIn(false)}
+                    lang={lang} onLangChange={setLang}/>
+            <div className="content">
+              {route === 'dashboard' && <Dashboard onPlay={setRoute}/>}
+              {route === 'roulette'  && <RouletteScreen balance={balance} onBalanceChange={setBalance}/>}
+              {route === 'slots'     && <SlotsScreen    balance={balance} onBalanceChange={setBalance}/>}
+              {route === 'shop'      && <Shop           balance={balance} onBalanceChange={setBalance}/>}
+              {route === 'credit'    && <CreditScreen   balance={balance} onBalanceChange={setBalance}/>}
+              {route === 'profile'   && <ProfileScreen  balance={balance}/>}
+              {route === 'work'      && <WorkScreen     balance={balance} onBalanceChange={setBalance}/>}
+              {route === 'stats'     && <StatsScreen/>}
+              {!['dashboard','roulette','slots','shop','credit','profile','work','stats'].includes(route) && (
+                <div className="container" style={{ padding: '80px 40px', textAlign: 'center' }}>
+                  <h2 className="h1 mb-4">{lang.common.comingSoon}</h2>
+                  <p className="p-lg mb-8">{lang.common.comingSoonDesc}</p>
+                  <button onClick={() => setRoute('dashboard')} className="btn btn-primary btn-lg">
+                    {lang.common.toGames} {I.arrowR}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </LangCtx.Provider>
+    );
+  }
+
+  // Expose for screens.jsx
+  window.I = I;
+  window.LangCtx = LangCtx;
+  window.TRANSLATIONS = TRANSLATIONS;
+  window.TIER_COLOR = TIER_COLOR;
+  window.TIER_LABEL = TIER_LABEL;
+  window.__AppBoot = () => {
+    const E = window.ExtraScreens || {};
+    const OriginalApp = App;
+    // Augment route list by wrapping App: re-render with added routes
+    function Shell() {
+      const [lang, setLang] = React.useState(TRANSLATIONS.ru);
+      const [loggedIn, setLoggedIn] = React.useState(true);
+      const [route, setRoute] = React.useState('dashboard');
+      const [balance, setBalance] = React.useState(2500);
+      const losingRate = 0.0427;
+      if (!loggedIn) return (
+        <LangCtx.Provider value={lang}>
+          <LoginScreen onLogin={() => setLoggedIn(true)} lang={lang} onLangChange={setLang}/>
+        </LangCtx.Provider>
+      );
+      const extraRoutes = {
+        blackjack: <E.Blackjack balance={balance}/>,
+        craps:     <E.Craps/>,
+        crash:     <E.Crash balance={balance} onBalanceChange={setBalance}/>,
+        hilo:      <E.HiLo  balance={balance} onBalanceChange={setBalance}/>,
+        topup:     <E.Topup balance={balance} onBalanceChange={setBalance}/>,
+        onboarding:<E.Onboarding/>,
+        inbox:     <E.Inbox/>,
+        daily:     <E.DailyBonus/>,
+        history:   <E.History/>,
+        win:       <E.WinModal/>,
+        lose:      <E.LoseScreen/>,
+        settings:  <E.Settings lang={lang} onLangChange={setLang}/>,
+        leaderboard: <E.Leaderboard/>,
+      };
+      const knownRoutes = ['dashboard','roulette','slots','shop','credit','profile','work','stats', ...Object.keys(extraRoutes)];
+      return (
+        <LangCtx.Provider value={lang}>
+          <div className="app">
+            <Sidebar active={route} onNav={setRoute}/>
+            <BottomNav active={route} onNav={setRoute}/>
+            <div className="main">
+              <Header balance={balance} losingRate={losingRate}
+                      onLogout={() => setLoggedIn(false)}
+                      lang={lang} onLangChange={setLang}/>
+              <div className="content">
+                {route === 'dashboard' && <Dashboard onPlay={setRoute}/>}
+                {route === 'roulette'  && <RouletteScreen balance={balance} onBalanceChange={setBalance}/>}
+                {route === 'slots'     && <SlotsScreen    balance={balance} onBalanceChange={setBalance}/>}
+                {route === 'shop'      && <Shop           balance={balance} onBalanceChange={setBalance}/>}
+                {route === 'credit'    && <CreditScreen   balance={balance} onBalanceChange={setBalance}/>}
+                {route === 'profile'   && <ProfileScreen  balance={balance}/>}
+                {route === 'work'      && <WorkScreen     balance={balance} onBalanceChange={setBalance}/>}
+                {route === 'stats'     && <StatsScreen/>}
+                {extraRoutes[route]}
+                {!knownRoutes.includes(route) && (
+                  <div className="container" style={{ padding: '80px 40px', textAlign: 'center' }}>
+                    <h2 className="h1 mb-4">{lang.common.comingSoon}</h2>
+                    <button onClick={() => setRoute('dashboard')} className="btn btn-primary btn-lg">
+                      {lang.common.toGames} {I.arrowR}
+                    </button>
+                  </div>
+                )}
+                {/* Screens picker (demo) */}
+                <div style={{ position:'fixed', bottom:20, left:20, zIndex:80, display:'flex', gap:6, flexWrap:'wrap', maxWidth:'calc(100vw - 40px)' }} className="screens-picker">
+                  {[
+                    ['blackjack','♠ Blackjack'],['craps','⚂ Craps'],['crash','Crash'],['hilo','Hi-Lo'],
+                    ['topup','+ Top-up'],['daily','Wheel'],['inbox','Inbox'],['history','Log'],
+                    ['onboarding','Intro'],['settings','⚙'],['leaderboard','🏆'],
+                    ['win','WIN'],['lose','0$'],
+                  ].map(([id,l])=>(
+                    <button key={id} onClick={()=>setRoute(id)}
+                      style={{ padding:'6px 10px', fontSize:11, fontWeight:600,
+                        background: route===id?'var(--gold)':'rgba(20,15,30,.9)',
+                        color: route===id?'#1A0F00':'var(--fg-2)',
+                        border:'1px solid var(--border-1)', borderRadius:6,
+                        backdropFilter:'blur(8px)' }}>{l}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </LangCtx.Provider>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<Shell/>);
+  };
+  </script>
+  <script type="text/babel" data-presets="react">
+// ─── Extra screens for Freezino UI Kit ─────────────────────────────────────
+// Expects: window.I (icons), window.LangCtx, window.TIER_COLOR, window.TIER_LABEL
+// Exposes: window.ExtraScreens = { Blackjack, Craps, Crash, HiLo, Topup, Onboarding,
+//                                   Inbox, DailyBonus, History, WinModal, LoseScreen,
+//                                   Settings, Leaderboard }
+
+(function () {
+  const { I, LangCtx } = window;
+  const TIER_COLOR = window.TIER_COLOR || { common:'#8E8AAB', rare:'#4FC3F7', epic:'#B344FF', legendary:'#FFC839' };
+
+  // Fallback translations helper — pulls from lang.common or falls back
+  const _ = (lang, path, fb) => {
+    try { return path.split('.').reduce((o,k)=>o&&o[k], lang) || fb; } catch { return fb; }
+  };
+
+  // ─── Blackjack (static hi-fi) ────────────────────────────────────────────
+  function Blackjack({ balance }) {
+    const lang = React.useContext(LangCtx);
+    const dealer = [{ r:'Q', s:'♠', c:'#fff' }, { r:'?', s:'', c:'#555', hidden:true }];
+    const player = [{ r:'10', s:'♥', c:'var(--accent)' }, { r:'8', s:'♣', c:'#fff' }];
+    const Card = ({ r, s, c, hidden }) => (
+      <div style={{
+        width:86, height:120, borderRadius:8,
+        background: hidden
+          ? 'linear-gradient(135deg,var(--purple),var(--accent))'
+          : 'linear-gradient(180deg,#fafafa,#e4e4e4)',
+        border:'1px solid rgba(0,0,0,.4)',
+        boxShadow:'0 8px 24px rgba(0,0,0,.5)',
+        padding:10, display:'flex', flexDirection:'column', justifyContent:'space-between',
+        color:c, fontFamily:'var(--font-serif)', fontSize:28, fontWeight:700,
+        position:'relative', overflow:'hidden',
+      }}>
+        {hidden ? (
+          <div style={{ margin:'auto', fontSize:36, color:'#fff', fontFamily:'var(--font-serif)', fontStyle:'italic' }}>F</div>
+        ) : (<>
+          <div>{r}<div style={{ fontSize:20, lineHeight:0.7 }}>{s}</div></div>
+          <div style={{ alignSelf:'flex-end', transform:'rotate(180deg)' }}>
+            {r}<div style={{ fontSize:20, lineHeight:0.7 }}>{s}</div>
+          </div>
+        </>)}
+      </div>
+    );
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--purple)' }}>Table</div>
+          <h1 className="h1">{lang.games.blackjack}</h1>
+        </div>
+        <div className="card-glow" style={{
+          padding:48, background:'radial-gradient(ellipse at center,#1F3D2A,#0B1A12)',
+          borderColor:'var(--gold-dim)', minHeight:520, position:'relative',
+        }}>
+          <div style={{ position:'absolute', inset:24, border:'2px solid rgba(255,200,57,.3)', borderRadius:120, pointerEvents:'none' }}/>
+          {/* Dealer */}
+          <div className="text-center mb-6" style={{ position:'relative', zIndex:1 }}>
+            <div className="label mb-3" style={{ color:'var(--gold)' }}>Dealer · 10</div>
+            <div className="row gap-2" style={{ justifyContent:'center' }}>
+              {dealer.map((c,i)=><Card key={i} {...c}/>)}
+            </div>
+          </div>
+          {/* Center message */}
+          <div className="text-center mb-6" style={{ position:'relative', zIndex:1 }}>
+            <div className="mono" style={{ fontSize:14, color:'var(--fg-3)', letterSpacing:'.1em' }}>
+              BLACKJACK PAYS 3 TO 2
+            </div>
+          </div>
+          {/* Player */}
+          <div className="text-center" style={{ position:'relative', zIndex:1 }}>
+            <div className="row gap-2 mb-3" style={{ justifyContent:'center' }}>
+              {player.map((c,i)=><Card key={i} {...c}/>)}
+            </div>
+            <div className="mono" style={{ fontSize:32, fontWeight:700, color:'var(--gold-bright)',
+                  textShadow:'var(--glow-gold)' }}>18</div>
+          </div>
+        </div>
+        <div className="grid gap-3 mt-6" style={{ gridTemplateColumns:'repeat(4,1fr)' }}>
+          {[
+            { l:'Hit', c:'var(--green)' },{ l:'Stand', c:'var(--gold)' },
+            { l:'Double', c:'var(--cyan)' },{ l:'Split', c:'var(--purple)' },
+          ].map(b => (
+            <button key={b.l} className="btn btn-lg"
+                    style={{ background:`linear-gradient(135deg, ${b.c}, ${b.c}99)`,
+                             color:'#0A0710', fontWeight:700 }}>{b.l}</button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Craps ───────────────────────────────────────────────────────────────
+  function Craps() {
+    const lang = React.useContext(LangCtx);
+    const Die = ({ n }) => {
+      const dots = { 1:[5], 2:[1,9], 3:[1,5,9], 4:[1,3,7,9], 5:[1,3,5,7,9], 6:[1,3,4,6,7,9] }[n];
+      return (
+        <div style={{
+          width:72, height:72, borderRadius:12, background:'linear-gradient(135deg,#fff,#d6d6d6)',
+          padding:10, display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:4,
+          boxShadow:'0 10px 24px rgba(0,0,0,.5), inset 0 0 0 1px rgba(0,0,0,.15)',
+        }}>
+          {[1,2,3,4,5,6,7,8,9].map(i=>(
+            <div key={i} style={{
+              width:10, height:10, borderRadius:'50%',
+              background: dots.includes(i) ? '#0A0710' : 'transparent',
+              justifySelf:'center', alignSelf:'center',
+            }}/>
+          ))}
+        </div>
+      );
+    };
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--cyan)' }}>Table</div>
+          <h1 className="h1">{lang.games.craps}</h1>
+        </div>
+        <div className="card-glow" style={{
+          padding:40, background:'radial-gradient(ellipse at center,#0F2A3A,#05141E)',
+          borderColor:'var(--cyan)', minHeight:420,
+        }}>
+          <div className="row gap-6 mb-8" style={{ justifyContent:'center' }}>
+            <Die n={4}/><Die n={6}/>
+          </div>
+          <div className="text-center mb-8">
+            <div className="mono" style={{ fontSize:80, fontWeight:700, color:'var(--cyan)',
+                  letterSpacing:'-0.03em', textShadow:'var(--glow-cyan)', lineHeight:1 }}>10</div>
+            <div className="label mt-2">Point established</div>
+          </div>
+          <div className="grid gap-2" style={{ gridTemplateColumns:'repeat(6,1fr)' }}>
+            {[['PASS','var(--green)'],["DON'T PASS",'var(--accent)'],['COME','var(--cyan)'],
+              ['FIELD','var(--gold)'],['BIG 6','var(--purple)'],['ANY 7','var(--accent-bright)']].map(([l,c])=>(
+              <div key={l} style={{
+                padding:'14px 8px', borderRadius:6, textAlign:'center',
+                background:`${c}22`, border:`1px solid ${c}66`, color:c,
+                fontSize:11, fontWeight:700, letterSpacing:'.06em',
+              }}>{l}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Crash (interactive) ─────────────────────────────────────────────────
+  function Crash({ balance, onBalanceChange }) {
+    const lang = React.useContext(LangCtx);
+    const [multi, setMulti] = React.useState(1.00);
+    const [state, setState] = React.useState('idle'); // idle, flying, crashed, cashed
+    const [bet, setBet] = React.useState(50);
+    const [bustAt, setBustAt] = React.useState(null);
+    const [history, setHistory] = React.useState([1.24, 3.08, 1.01, 12.4, 2.6, 1.8, 4.2]);
+
+    React.useEffect(() => {
+      if (state !== 'flying') return;
+      const id = setInterval(() => {
+        setMulti(m => {
+          const next = +(m + 0.03 * Math.pow(m, 1.02)).toFixed(2);
+          if (next >= bustAt) {
+            setState('crashed');
+            setHistory(h => [+bustAt.toFixed(2), ...h].slice(0, 10));
+            return bustAt;
+          }
+          return next;
+        });
+      }, 80);
+      return () => clearInterval(id);
+    }, [state, bustAt]);
+
+    const launch = () => {
+      if (balance < bet) return;
+      onBalanceChange(balance - bet);
+      setMulti(1.00);
+      setBustAt(1 + Math.pow(Math.random(), 2) * 15 + 0.1);
+      setState('flying');
+    };
+    const cashout = () => {
+      if (state !== 'flying') return;
+      onBalanceChange(balance + Math.round(bet * multi));
+      setState('cashed');
+    };
+    const reset = () => { setState('idle'); setMulti(1.00); };
+
+    const color = state === 'crashed' ? 'var(--accent)'
+                : state === 'cashed'  ? 'var(--green)' : 'var(--gold)';
+
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--green)' }}>Realtime</div>
+          <h1 className="h1">{lang.games.crash}</h1>
+        </div>
+        <div className="grid gap-4" style={{ gridTemplateColumns:'2fr 1fr' }}>
+          <div className="card-glow" style={{
+            padding:0, minHeight:420,
+            background:'radial-gradient(ellipse at 50% 100%, rgba(255,200,57,.15), var(--bg-1))',
+            overflow:'hidden', position:'relative',
+          }}>
+            <svg viewBox="0 0 400 280" preserveAspectRatio="none"
+                 style={{ position:'absolute', inset:0, width:'100%', height:'100%' }}>
+              <defs>
+                <linearGradient id="crashGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor={color} stopOpacity="0.4"/>
+                  <stop offset="1" stopColor={color} stopOpacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d={`M 0 280 Q 120 ${280 - Math.min(multi, 15) * 15} 400 ${280 - Math.min(multi, 15) * 18} L 400 280 Z`}
+                    fill="url(#crashGrad)"/>
+              <path d={`M 0 280 Q 120 ${280 - Math.min(multi, 15) * 15} 400 ${280 - Math.min(multi, 15) * 18}`}
+                    stroke={color} strokeWidth="3" fill="none"
+                    style={{ filter:`drop-shadow(0 0 8px ${color})` }}/>
+            </svg>
+            <div style={{ position:'relative', zIndex:1, padding:'60px 40px', textAlign:'center' }}>
+              <div className="mono" style={{ fontSize:96, fontWeight:800, lineHeight:1,
+                    color, letterSpacing:'-0.03em',
+                    textShadow:`0 0 24px ${color}` }}>
+                {multi.toFixed(2)}×
+              </div>
+              <div className="label mt-4" style={{ color }}>
+                {state === 'idle' ? 'WAITING'
+                 : state === 'flying' ? 'IN FLIGHT'
+                 : state === 'crashed' ? `BUST @ ${bustAt?.toFixed(2)}×`
+                 : `CASHED @ ${multi.toFixed(2)}×`}
+              </div>
+            </div>
+            <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', gap:6 }}>
+              {history.map((h, i) => (
+                <div key={i} style={{
+                  flex:1, padding:'6px 0', borderRadius:4, textAlign:'center',
+                  background: h < 2 ? 'rgba(255,46,99,.2)' : 'rgba(0,230,118,.2)',
+                  color: h < 2 ? 'var(--accent-bright)' : 'var(--green)',
+                  fontSize:11, fontWeight:700, fontFamily:'var(--font-mono)',
+                }}>{h.toFixed(2)}×</div>
+              ))}
+            </div>
+          </div>
+          <div className="card col gap-4">
+            <div className="field">
+              <label>{lang.common.bet}</label>
+              <div className="row gap-2">
+                {[10,50,100,500].map(v => (
+                  <button key={v} onClick={() => setBet(v)} disabled={state==='flying'}
+                          style={{
+                            flex:1, padding:'10px',
+                            background: bet===v ? 'linear-gradient(135deg,var(--gold),var(--gold-dim))' : 'var(--bg-2)',
+                            color: bet===v ? '#1A0F00' : 'var(--fg-2)',
+                            fontFamily:'var(--font-mono)', fontWeight:600, fontSize:13,
+                            borderRadius:'var(--radius-md)', border:'1px solid var(--border-1)',
+                          }}>${v}</button>
+                ))}
+              </div>
+            </div>
+            {state === 'idle' && (
+              <button onClick={launch} disabled={balance < bet} className="btn btn-primary btn-xl btn-block">
+                {lang.common.launch} · ${bet}
+              </button>
+            )}
+            {state === 'flying' && (
+              <button onClick={cashout} className="btn btn-danger btn-xl btn-block">
+                Cash out ${Math.round(bet * multi)}
+              </button>
+            )}
+            {(state === 'crashed' || state === 'cashed') && (
+              <button onClick={reset} className="btn btn-secondary btn-xl btn-block">
+                Again
+              </button>
+            )}
+            <div className="mt-4" style={{ padding:'12px', background:'var(--bg-2)', borderRadius:8 }}>
+              <div className="label mb-2">Potential</div>
+              <div className="money" style={{ fontSize:20 }}>
+                ${Math.round(bet * multi).toLocaleString()}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Hi-Lo (interactive) ─────────────────────────────────────────────────
+  function HiLo({ balance, onBalanceChange }) {
+    const lang = React.useContext(LangCtx);
+    const [current, setCurrent] = React.useState(7);
+    const [streak, setStreak] = React.useState(2);
+    const [bet] = React.useState(20);
+    const [anim, setAnim] = React.useState(null);
+    const play = dir => {
+      const next = Math.floor(Math.random()*13)+1;
+      const correct = (dir==='hi' && next >= current) || (dir==='lo' && next <= current);
+      setAnim(correct ? 'win' : 'lose');
+      setTimeout(() => {
+        setAnim(null);
+        setCurrent(next);
+        if (correct) { setStreak(s => s+1); onBalanceChange(balance + Math.round(bet*0.85)); }
+        else { setStreak(0); onBalanceChange(balance - bet); }
+      }, 600);
+    };
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px', maxWidth:680 }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--gold)' }}>Card</div>
+          <h1 className="h1">{lang.games.hilo}</h1>
+        </div>
+        <div className="card-glow text-center" style={{ padding:48 }}>
+          <div className="label mb-4">Current card</div>
+          <div style={{
+            margin:'0 auto', width:180, height:260, borderRadius:14,
+            background:'linear-gradient(180deg,#fafafa,#d6d6d6)',
+            display:'grid', placeItems:'center',
+            fontFamily:'var(--font-serif)', fontSize:120, fontWeight:700,
+            color: current >= 7 ? 'var(--accent)' : '#111',
+            boxShadow:'0 20px 60px rgba(0,0,0,.6), inset 0 0 0 3px rgba(255,200,57,.3)',
+            transform: anim ? 'scale(1.05)' : 'scale(1)',
+            transition:'transform .3s var(--ease-spring)',
+          }}>{current}</div>
+          <div className="mt-6">
+            <span className="tag tag-gold" style={{ fontSize:13, padding:'6px 14px' }}>
+              Streak × {streak}
+            </span>
+          </div>
+          <div className="row gap-4 mt-8" style={{ justifyContent:'center' }}>
+            <button onClick={() => play('lo')} className="btn btn-lg"
+                    style={{ background:'linear-gradient(135deg,var(--cyan),#0097B2)',
+                             color:'#001014', fontWeight:700, minWidth:140 }}>
+              ↓ Lower ×1.85
+            </button>
+            <button onClick={() => play('hi')} className="btn btn-lg"
+                    style={{ background:'linear-gradient(135deg,var(--accent-bright),var(--accent))',
+                             color:'#fff', fontWeight:700, minWidth:140 }}>
+              ↑ Higher ×1.85
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Top-up (static) ─────────────────────────────────────────────────────
+  function Topup({ onBalanceChange, balance }) {
+    const lang = React.useContext(LangCtx);
+    const t = { ru:'Пополнить баланс', en:'Top up balance', es:'Recargar saldo' }[lang.code];
+    const sub = { ru:'Виртуальные деньги — никаких реальных платежей.',
+                  en:'Virtual money only — no real payments.',
+                  es:'Solo dinero virtual, sin pagos reales.' }[lang.code];
+    const packs = [
+      { amount:500,   price:'$0.99',  bonus:0,   tier:'common' },
+      { amount:2500,  price:'$4.99',  bonus:250, tier:'rare' },
+      { amount:10000, price:'$14.99', bonus:2000,tier:'epic', featured:true },
+      { amount:50000, price:'$49.99', bonus:15000,tier:'legendary' },
+    ];
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px' }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--gold)' }}>{lang.common.balance}</div>
+          <h1 className="h1 mb-4">{t}</h1>
+          <p className="p-lg" style={{ maxWidth:540 }}>{sub}</p>
+        </div>
+        <div className="grid gap-4" style={{ gridTemplateColumns:'repeat(4,1fr)' }}>
+          {packs.map((p,i) => (
+            <div key={i} className="card-interactive" style={{
+              padding:28, textAlign:'center', position:'relative',
+              borderColor: p.featured ? 'var(--gold)' : undefined,
+              boxShadow: p.featured ? 'var(--glow-gold)' : undefined,
+              background: p.featured ? 'linear-gradient(135deg,rgba(255,200,57,.1),var(--bg-1))' : undefined,
+            }}>
+              {p.featured && <div className="tag tag-gold" style={{ position:'absolute', top:-10, left:'50%', transform:'translateX(-50%)' }}>★ BEST</div>}
+              <div style={{ fontSize:48, fontFamily:'var(--font-serif)', color:TIER_COLOR[p.tier],
+                    fontStyle:'italic', lineHeight:1, marginBottom:12 }}>$</div>
+              <div className="money" style={{ fontSize:28, lineHeight:1 }}>${p.amount.toLocaleString()}</div>
+              {p.bonus > 0 && (
+                <div className="mt-2" style={{ fontSize:12, color:'var(--green)', fontWeight:600 }}>
+                  +${p.bonus.toLocaleString()} bonus
+                </div>
+              )}
+              <div className="mt-6 mb-4" style={{ height:1, background:'var(--border-1)' }}/>
+              <button className="btn btn-primary btn-block">{p.price}</button>
+            </div>
+          ))}
+        </div>
+        <div className="card mt-8" style={{ background:'var(--bg-1)' }}>
+          <div className="label mb-3">Payment methods</div>
+          <div className="row gap-3" style={{ flexWrap:'wrap' }}>
+            {['Visa','Mastercard','Apple Pay','Google Pay','PayPal','Crypto'].map(m => (
+              <div key={m} className="tag" style={{ padding:'8px 14px', fontSize:12 }}>{m}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Onboarding (static; 3 steps shown side-by-side) ─────────────────────
+  function Onboarding() {
+    const lang = React.useContext(LangCtx);
+    const [step, setStep] = React.useState(0);
+    const steps = {
+      ru: [
+        { t:'Добро пожаловать в Freezino', d:'Это не казино. Это симулятор, который показывает, как быстро уходят деньги.', icon:I.flame, c:'var(--gold)' },
+        { t:'Только виртуальные деньги', d:'Никаких реальных ставок. Баланс не настоящий. Эмоции — настоящие.', icon:I.lock, c:'var(--cyan)' },
+        { t:'Запоминайте свои цифры', d:'Играйте, проигрывайте, закрывайте. А затем удалите настоящее приложение.', icon:I.check, c:'var(--green)' },
+      ],
+      en: [
+        { t:'Welcome to Freezino', d:"This isn't a casino. It's a simulator that shows how fast money vanishes.", icon:I.flame, c:'var(--gold)' },
+        { t:'Virtual money only', d:'No real wagers. The balance is fake. The feeling is not.', icon:I.lock, c:'var(--cyan)' },
+        { t:'Remember your numbers', d:'Play, lose, close the app. Then delete the real one.', icon:I.check, c:'var(--green)' },
+      ],
+      es: [
+        { t:'Bienvenido a Freezino', d:'No es un casino. Es un simulador que muestra qué rápido se va el dinero.', icon:I.flame, c:'var(--gold)' },
+        { t:'Solo dinero virtual', d:'Sin apuestas reales. El saldo es falso. La sensación, no.', icon:I.lock, c:'var(--cyan)' },
+        { t:'Recuerda tus números', d:'Juega, pierde, cierra. Luego borra la app real.', icon:I.check, c:'var(--green)' },
+      ],
+    }[lang.code];
+    const s = steps[step];
+    return (
+      <div className="container" style={{ padding:'60px 40px', maxWidth:560, textAlign:'center' }}>
+        <div style={{
+          width:96, height:96, margin:'0 auto 32px', borderRadius:'50%',
+          background:`linear-gradient(135deg, ${s.c}, ${s.c}55)`,
+          display:'grid', placeItems:'center',
+          boxShadow:`0 0 48px ${s.c}88`,
+        }}>{React.cloneElement(s.icon, { size: 44 })}</div>
+        <div className="h-display mb-4" style={{ fontSize:48 }}>{s.t}</div>
+        <p className="p-lg mb-8">{s.d}</p>
+        <div className="row gap-2 mb-8" style={{ justifyContent:'center' }}>
+          {steps.map((_, i) => (
+            <div key={i} style={{
+              width: step===i ? 32 : 8, height:8, borderRadius:4,
+              background: step===i ? 'var(--gold)' : 'var(--bg-3)',
+              transition:'all .2s var(--ease)',
+              boxShadow: step===i ? 'var(--glow-gold)' : 'none',
+            }}/>
+          ))}
+        </div>
+        <div className="row gap-3" style={{ justifyContent:'center' }}>
+          {step > 0 && (
+            <button onClick={() => setStep(step-1)} className="btn btn-secondary btn-lg">
+              ← {lang.common.back}
+            </button>
+          )}
+          <button onClick={() => setStep(Math.min(2, step+1))}
+                  className="btn btn-primary btn-lg">
+            {step < 2 ? 'Next →' : "Let's go →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Inbox ───────────────────────────────────────────────────────────────
+  function Inbox() {
+    const lang = React.useContext(LangCtx);
+    const t = { ru:'Уведомления', en:'Inbox', es:'Bandeja' }[lang.code];
+    const msgs = {
+      ru: [
+        { t:'Джекпот вырос до $847 219', d:'2 минуты назад', icon:I.trophy, c:'var(--gold)', new:true },
+        { t:'Вы проиграли $500 на слотах', d:'1 час назад', icon:I.trendDown, c:'var(--accent)', new:true },
+        { t:'Новое достижение: 3 часа игры', d:'вчера', icon:I.clock, c:'var(--cyan)' },
+        { t:'Срок кредита истекает через 3 дня', d:'2 дня назад', icon:I.credit, c:'var(--accent-bright)' },
+        { t:'Смена в работе завершена', d:'3 дня назад', icon:I.briefcase, c:'var(--green)' },
+      ],
+      en: [
+        { t:'Jackpot just grew to $847,219', d:'2 min ago', icon:I.trophy, c:'var(--gold)', new:true },
+        { t:'You lost $500 on slots', d:'1h ago', icon:I.trendDown, c:'var(--accent)', new:true },
+        { t:'Achievement: 3 hours played', d:'yesterday', icon:I.clock, c:'var(--cyan)' },
+        { t:'Loan due in 3 days', d:'2d ago', icon:I.credit, c:'var(--accent-bright)' },
+        { t:'Work shift completed', d:'3d ago', icon:I.briefcase, c:'var(--green)' },
+      ],
+      es: [
+        { t:'El bote ha crecido a $847,219', d:'hace 2 min', icon:I.trophy, c:'var(--gold)', new:true },
+        { t:'Perdiste $500 en tragaperras', d:'hace 1h', icon:I.trendDown, c:'var(--accent)', new:true },
+        { t:'Logro: 3 horas jugadas', d:'ayer', icon:I.clock, c:'var(--cyan)' },
+        { t:'Préstamo vence en 3 días', d:'hace 2d', icon:I.credit, c:'var(--accent-bright)' },
+        { t:'Turno completado', d:'hace 3d', icon:I.briefcase, c:'var(--green)' },
+      ],
+    }[lang.code];
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px', maxWidth:760 }}>
+        <div className="row between mb-8">
+          <div>
+            <div className="label mb-2" style={{ color:'var(--cyan)' }}>Messages</div>
+            <h1 className="h1">{t}</h1>
+          </div>
+          <span className="tag tag-accent">2 new</span>
+        </div>
+        <div className="col gap-2">
+          {msgs.map((m, i) => (
+            <div key={i} className="card-interactive" style={{
+              padding:16, display:'flex', alignItems:'center', gap:16,
+              background: m.new ? 'linear-gradient(90deg,rgba(255,200,57,.06),var(--bg-1))' : 'var(--bg-1)',
+            }}>
+              <div style={{ width:44, height:44, borderRadius:'var(--radius-md)',
+                    background:`${m.c}22`, color:m.c,
+                    display:'grid', placeItems:'center', flexShrink:0 }}>
+                {m.icon}
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:'var(--fg-1)',
+                      whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{m.t}</div>
+                <div className="p-sm" style={{ fontSize:12, marginTop:2 }}>{m.d}</div>
+              </div>
+              {m.new && <div style={{ width:8, height:8, borderRadius:'50%', background:'var(--gold)',
+                    boxShadow:'var(--glow-gold)', flexShrink:0 }}/>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Daily Bonus / Wheel ─────────────────────────────────────────────────
+  function DailyBonus() {
+    const lang = React.useContext(LangCtx);
+    const t = { ru:'Ежедневный бонус', en:'Daily bonus', es:'Bono diario' }[lang.code];
+    const sub = { ru:'Крутите колесо раз в 24 часа.', en:'Spin the wheel once every 24 hours.', es:'Gira la ruleta cada 24 horas.' }[lang.code];
+    const segments = [
+      { v:'$50',  c:'var(--gold)' },{ v:'$10', c:'var(--fg-3)' },
+      { v:'$500', c:'var(--accent)' },{ v:'$100', c:'var(--cyan)' },
+      { v:'$1K', c:'var(--purple)' },{ v:'$25', c:'var(--green)' },
+      { v:'JACKPOT', c:'var(--gold-bright)' },{ v:'$200', c:'var(--accent-bright)' },
+    ];
+    const [rot, setRot] = React.useState(0);
+    const spin = () => setRot(r => r + 360*5 + Math.floor(Math.random()*360));
+    const seg = 360 / segments.length;
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px', textAlign:'center', maxWidth:640 }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--gold)' }}>Daily</div>
+          <h1 className="h1 mb-2">{t}</h1>
+          <p className="p">{sub}</p>
+        </div>
+        <div style={{ position:'relative', width:320, height:320, margin:'0 auto' }}>
+          <div style={{
+            position:'absolute', inset:0, borderRadius:'50%',
+            transform:`rotate(${rot}deg)`, transition:'transform 4s cubic-bezier(.17,.67,.22,1)',
+            boxShadow:'var(--glow-gold), 0 0 0 6px var(--gold-dim)',
+          }}>
+            <svg viewBox="-100 -100 200 200" style={{ width:'100%', height:'100%' }}>
+              {segments.map((s, i) => {
+                const a1 = (i*seg-90) * Math.PI/180;
+                const a2 = ((i+1)*seg-90) * Math.PI/180;
+                const x1 = 100*Math.cos(a1), y1 = 100*Math.sin(a1);
+                const x2 = 100*Math.cos(a2), y2 = 100*Math.sin(a2);
+                const mid = ((i+0.5)*seg-90) * Math.PI/180;
+                const tx = 60*Math.cos(mid), ty = 60*Math.sin(mid);
+                return (
+                  <g key={i}>
+                    <path d={`M 0 0 L ${x1} ${y1} A 100 100 0 0 1 ${x2} ${y2} Z`}
+                          fill={s.c} stroke="rgba(0,0,0,.3)" strokeWidth="1"/>
+                    <text x={tx} y={ty} textAnchor="middle" dominantBaseline="middle"
+                          transform={`rotate(${(i+0.5)*seg} ${tx} ${ty})`}
+                          fontFamily="var(--font-mono)" fontSize="12" fontWeight="700"
+                          fill={s.c === 'var(--gold-bright)' || s.c === 'var(--gold)' ? '#1A0F00' : '#fff'}>
+                      {s.v}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+          <div style={{
+            position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)',
+            width:72, height:72, borderRadius:'50%',
+            background:'linear-gradient(135deg,var(--gold),var(--gold-dim))',
+            display:'grid', placeItems:'center',
+            fontFamily:'var(--font-serif)', fontSize:36, fontStyle:'italic', color:'#1A0F00',
+            boxShadow:'0 4px 24px rgba(0,0,0,.5)',
+          }}>F</div>
+          <div style={{
+            position:'absolute', top:-4, left:'50%', transform:'translateX(-50%)',
+            width:0, height:0, borderLeft:'14px solid transparent', borderRight:'14px solid transparent',
+            borderTop:'24px solid var(--accent)',
+            filter:'drop-shadow(0 0 12px var(--accent))',
+          }}/>
+        </div>
+        <button onClick={spin} className="btn btn-primary btn-xl mt-8">
+          SPIN ·  +free
+        </button>
+      </div>
+    );
+  }
+
+  // ─── Transaction History ─────────────────────────────────────────────────
+  function History() {
+    const lang = React.useContext(LangCtx);
+    const t = { ru:'История транзакций', en:'Transaction history', es:'Historial de transacciones' }[lang.code];
+    const L = { ru:['Рулетка','Слоты','Кредит','Работа','Магазин','Блэкджек'],
+                en:['Roulette','Slots','Loan','Work','Shop','Blackjack'],
+                es:['Ruleta','Tragaperras','Préstamo','Trabajo','Tienda','Blackjack'] }[lang.code];
+    const tx = [
+      { t:L[0], a:-250, d:'2 min ago' }, { t:L[1], a:+420, d:'8 min ago' },
+      { t:L[1], a:-50,  d:'9 min ago' }, { t:L[3], a:+500, d:'25 min ago' },
+      { t:L[2], a:+2500, d:'1h ago', c:'var(--accent)' },
+      { t:L[0], a:-500, d:'1h ago' }, { t:L[5], a:-200, d:'2h ago' },
+      { t:L[4], a:-8400, d:'yesterday', c:'var(--purple)' },
+    ];
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px', maxWidth:820 }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--fg-3)' }}>Ledger</div>
+          <h1 className="h1">{t}</h1>
+        </div>
+        <div className="card" style={{ padding:0, overflow:'hidden' }}>
+          {tx.map((r, i) => (
+            <div key={i} style={{
+              display:'grid', gridTemplateColumns:'2fr 1fr 1fr', padding:'16px 20px', gap:12,
+              borderBottom: i < tx.length-1 ? '1px solid var(--border-1)' : undefined,
+              alignItems:'center',
+            }}>
+              <div>
+                <div style={{ fontSize:14, fontWeight:600, color:'var(--fg-1)' }}>{r.t}</div>
+                <div className="p-sm" style={{ fontSize:12, marginTop:2 }}>{r.d}</div>
+              </div>
+              <div className="tag" style={{ justifySelf:'start', fontSize:10,
+                    background: (r.c || (r.a > 0 ? 'var(--green-soft)' : 'var(--accent-soft)')),
+                    color: (r.c ? '#fff' : (r.a > 0 ? 'var(--green)' : 'var(--accent-bright)')),
+                    borderColor:'transparent' }}>
+                {r.a > 0 ? 'IN' : 'OUT'}
+              </div>
+              <div className="mono" style={{ textAlign:'right', fontSize:15, fontWeight:700,
+                    color: r.a > 0 ? 'var(--green)' : 'var(--accent-bright)' }}>
+                {r.a > 0 ? '+' : '−'}${Math.abs(r.a).toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Big Win Modal ───────────────────────────────────────────────────────
+  function WinModal() {
+    const lang = React.useContext(LangCtx);
+    const t = { ru:'КРУПНЫЙ ВЫИГРЫШ!', en:'BIG WIN!', es:'¡GRAN GANANCIA!' }[lang.code];
+    return (
+      <div style={{
+        minHeight:'calc(100vh - 64px)', display:'grid', placeItems:'center', padding:24,
+        position:'relative', overflow:'hidden',
+      }}>
+        <div style={{ position:'absolute', inset:0,
+              background:'radial-gradient(circle at center, rgba(255,200,57,.3), transparent 60%)',
+              pointerEvents:'none' }}/>
+        <div className="card-glow" style={{
+          padding:56, textAlign:'center', maxWidth:520,
+          background:'linear-gradient(180deg, rgba(255,200,57,.1), var(--bg-1))',
+          border:'2px solid var(--gold)', boxShadow:'var(--glow-gold), 0 40px 80px rgba(0,0,0,.6)',
+        }}>
+          <div style={{
+            width:96, height:96, margin:'0 auto 20px', borderRadius:'50%',
+            background:'linear-gradient(135deg,var(--gold-bright),var(--gold))',
+            display:'grid', placeItems:'center', color:'#1A0F00',
+            boxShadow:'var(--glow-gold)',
+          }}>{React.cloneElement(I.trophy, { size: 48 })}</div>
+          <div className="label mb-3 shimmer">{t}</div>
+          <div className="mono shimmer" style={{
+            fontSize:88, fontWeight:800, lineHeight:1, letterSpacing:'-0.03em',
+          }}>+$12,400</div>
+          <div className="p mt-3" style={{ color:'var(--fg-3)' }}>
+            {lang.games.slots} · 5 of a kind · ×50
+          </div>
+          <div className="row gap-3 mt-8" style={{ justifyContent:'center' }}>
+            <button className="btn btn-secondary btn-lg">Collect</button>
+            <button className="btn btn-primary btn-lg">Double or nothing →</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Lose Screen (balance 0) ─────────────────────────────────────────────
+  function LoseScreen() {
+    const lang = React.useContext(LangCtx);
+    const t = { ru:'Баланс пуст', en:'Balance empty', es:'Saldo vacío' }[lang.code];
+    const sub = {
+      ru:'И заметьте — это было виртуально. Представьте, если бы это были настоящие деньги.',
+      en:"And remember — this was fake money. Now imagine it wasn't.",
+      es:'Y recuerda: era dinero falso. Imagínalo con dinero real.',
+    }[lang.code];
+    return (
+      <div style={{
+        minHeight:'calc(100vh - 64px)', display:'grid', placeItems:'center', padding:24,
+      }}>
+        <div style={{ textAlign:'center', maxWidth:560 }}>
+          <div style={{
+            width:112, height:112, margin:'0 auto 32px', borderRadius:'50%',
+            background:'linear-gradient(135deg,var(--accent),var(--purple))',
+            display:'grid', placeItems:'center',
+            boxShadow:'var(--glow-accent)',
+          }}>{React.cloneElement(I.trendDown, { size: 56 })}</div>
+          <div className="h-display mb-4" style={{ fontSize:56, color:'var(--accent-bright)' }}>{t}</div>
+          <div className="mono mb-6" style={{ fontSize:72, fontWeight:800, color:'var(--fg-1)',
+                letterSpacing:'-0.03em', lineHeight:1 }}>$0.00</div>
+          <p className="p-lg mb-8">{sub}</p>
+          <div className="row gap-3" style={{ justifyContent:'center', flexWrap:'wrap' }}>
+            <button className="btn btn-danger btn-lg">{lang.credit.take}</button>
+            <button className="btn btn-primary btn-lg">{lang.work.claim} · $500</button>
+            <button className="btn btn-secondary btn-lg">{lang.common.balance} +$500</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Settings ────────────────────────────────────────────────────────────
+  function Settings({ lang, onLangChange }) {
+    const t = { ru:'Настройки', en:'Settings', es:'Ajustes' }[lang.code];
+    const [sound, setSound] = React.useState(true);
+    const [music, setMusic] = React.useState(true);
+    const [notif, setNotif] = React.useState(false);
+    const [haptic, setHaptic] = React.useState(true);
+    const Toggle = ({ on, onClick }) => (
+      <button onClick={onClick} style={{
+        width:44, height:26, borderRadius:13, padding:2,
+        background: on ? 'var(--green)' : 'var(--bg-3)',
+        boxShadow: on ? 'var(--glow-green)' : 'none',
+        transition:'background .2s',
+      }}>
+        <div style={{
+          width:22, height:22, borderRadius:'50%', background:'#fff',
+          transform: on ? 'translateX(18px)' : 'translateX(0)',
+          transition:'transform .2s var(--ease-spring)',
+        }}/>
+      </button>
+    );
+    const Row = ({ icon, label, value, right }) => (
+      <div style={{ display:'flex', alignItems:'center', gap:16, padding:'18px 20px',
+            borderBottom:'1px solid var(--border-1)' }}>
+        <span style={{ color:'var(--fg-3)' }}>{icon}</span>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:14, fontWeight:500, color:'var(--fg-1)' }}>{label}</div>
+          {value && <div className="p-sm" style={{ fontSize:12 }}>{value}</div>}
+        </div>
+        {right}
+      </div>
+    );
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px', maxWidth:720 }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--fg-3)' }}>Preferences</div>
+          <h1 className="h1">{t}</h1>
+        </div>
+        <div className="card" style={{ padding:0, overflow:'hidden' }}>
+          <Row icon={I.volume} label={lang.code==='ru'?'Звуковые эффекты':lang.code==='es'?'Efectos de sonido':'Sound effects'}
+               right={<Toggle on={sound} onClick={()=>setSound(!sound)}/>}/>
+          <Row icon={I.volume} label={lang.code==='ru'?'Музыка':lang.code==='es'?'Música':'Music'}
+               right={<Toggle on={music} onClick={()=>setMusic(!music)}/>}/>
+          <Row icon={I.bell} label={lang.code==='ru'?'Уведомления':lang.code==='es'?'Notificaciones':'Push notifications'}
+               right={<Toggle on={notif} onClick={()=>setNotif(!notif)}/>}/>
+          <Row icon={I.zap} label={lang.code==='ru'?'Вибрация':lang.code==='es'?'Vibración':'Haptic feedback'}
+               right={<Toggle on={haptic} onClick={()=>setHaptic(!haptic)}/>}/>
+          <div style={{ display:'flex', alignItems:'center', gap:16, padding:'18px 20px' }}>
+            <span style={{ color:'var(--fg-3)' }}>{I.globe}</span>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:14, fontWeight:500, color:'var(--fg-1)' }}>
+                {lang.code==='ru'?'Язык':lang.code==='es'?'Idioma':'Language'}
+              </div>
+              <div className="p-sm" style={{ fontSize:12 }}>{lang.label}</div>
+            </div>
+            <div className="row gap-2">
+              {Object.values(window.TRANSLATIONS).map(l => (
+                <button key={l.code} onClick={() => onLangChange(l)}
+                        style={{
+                          padding:'6px 10px', borderRadius:6, fontSize:12, fontWeight:600,
+                          background: lang.code===l.code ? 'var(--gold)' : 'var(--bg-2)',
+                          color: lang.code===l.code ? '#1A0F00' : 'var(--fg-2)',
+                          border:'1px solid var(--border-1)',
+                        }}>{l.flag} {l.code.toUpperCase()}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="card mt-4" style={{ padding:0, overflow:'hidden' }}>
+          {[
+            { l: lang.code==='ru'?'Аккаунт':lang.code==='es'?'Cuenta':'Account', v:'igrok_1985' },
+            { l:'Email', v:'player@example.com' },
+            { l: lang.code==='ru'?'Выйти':lang.code==='es'?'Cerrar sesión':'Log out', v:'', danger:true },
+          ].map((r, i, a) => (
+            <div key={i} style={{ padding:'18px 20px', borderBottom: i<a.length-1 ? '1px solid var(--border-1)' : undefined,
+                  display:'flex', alignItems:'center', gap:12 }}>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:14, fontWeight:500,
+                      color: r.danger ? 'var(--accent-bright)' : 'var(--fg-1)' }}>{r.l}</div>
+                {r.v && <div className="p-sm" style={{ fontSize:12 }}>{r.v}</div>}
+              </div>
+              {!r.danger && <span style={{ color:'var(--fg-4)' }}>{I.arrowR}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Leaderboard ─────────────────────────────────────────────────────────
+  function Leaderboard() {
+    const lang = React.useContext(LangCtx);
+    const t = { ru:'Лидерборд', en:'Leaderboard', es:'Clasificación' }[lang.code];
+    const sub = { ru:'Кто проиграл больше всех за неделю.',
+                  en:'Who lost the most this week.',
+                  es:'Quién perdió más esta semana.' }[lang.code];
+    const rows = [
+      { r:1, n:'whale_88',     lost:84210, time:'62h' },
+      { r:2, n:'lucky_loser',  lost:52300, time:'48h' },
+      { r:3, n:'casino_ghost', lost:41080, time:'33h' },
+      { r:4, n:'roulette_rita',lost:22100, time:'19h', you:false },
+      { r:5, n:'spin2win',     lost:18400, time:'14h' },
+      { r:6, n:'igrok_1985',   lost:2840,  time:'2h 47m', you:true },
+      { r:7, n:'high_roller',  lost:1920,  time:'4h' },
+    ];
+    const rankColor = r => r===1 ? 'var(--gold)' : r===2 ? '#C0C0C0' : r===3 ? '#CD7F32' : 'var(--fg-3)';
+    return (
+      <div className="container" style={{ padding:'32px 40px 80px', maxWidth:820 }}>
+        <div className="mb-8">
+          <div className="label mb-2" style={{ color:'var(--accent)' }}>Weekly</div>
+          <h1 className="h1 mb-4">{t}</h1>
+          <p className="p-lg" style={{ maxWidth:540 }}>{sub}</p>
+        </div>
+
+        {/* Top 3 podium */}
+        <div className="grid gap-3 mb-6" style={{ gridTemplateColumns:'1fr 1.2fr 1fr', alignItems:'flex-end' }}>
+          {[rows[1], rows[0], rows[2]].map((p, i) => {
+            const h = [140, 180, 120][i];
+            const c = rankColor(p.r);
+            return (
+              <div key={p.r} className="card" style={{
+                textAlign:'center', padding:'20px 12px', height:h,
+                background:`linear-gradient(180deg, ${c}22, var(--bg-1))`,
+                borderColor:`${c}55`,
+                display:'flex', flexDirection:'column', justifyContent:'flex-end',
+              }}>
+                <div className="mono" style={{ fontSize:36, fontWeight:800, color:c, lineHeight:1 }}>
+                  #{p.r}
+                </div>
+                <div style={{ fontSize:13, fontWeight:600, color:'var(--fg-1)', marginTop:6 }}>{p.n}</div>
+                <div className="money" style={{ fontSize:14, color:'var(--accent-bright)', marginTop:4 }}>
+                  −${p.lost.toLocaleString()}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="card" style={{ padding:0, overflow:'hidden' }}>
+          {rows.slice(3).map((r, i) => (
+            <div key={r.n} style={{
+              display:'grid', gridTemplateColumns:'40px 1fr auto auto', gap:14,
+              padding:'16px 20px', alignItems:'center',
+              background: r.you ? 'linear-gradient(90deg,rgba(255,200,57,.1),transparent)' : undefined,
+              borderBottom: i < rows.length-4 ? '1px solid var(--border-1)' : undefined,
+            }}>
+              <div className="mono" style={{ fontSize:15, fontWeight:700, color:rankColor(r.r) }}>#{r.r}</div>
+              <div>
+                <div style={{ fontSize:14, fontWeight:600,
+                      color: r.you ? 'var(--gold)' : 'var(--fg-1)' }}>
+                  {r.n}{r.you && <span className="tag tag-gold" style={{ marginLeft:8, fontSize:10 }}>YOU</span>}
+                </div>
+                <div className="p-sm" style={{ fontSize:12 }}>{r.time}</div>
+              </div>
+              <div className="money" style={{ color:'var(--accent-bright)', fontSize:15 }}>
+                −${r.lost.toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  window.ExtraScreens = {
+    Blackjack, Craps, Crash, HiLo, Topup, Onboarding,
+    Inbox, DailyBonus, History, WinModal, LoseScreen,
+    Settings, Leaderboard,
+  };
+})();
+
+</script>
+  <script type="text/babel" data-presets="react">window.__AppBoot && window.__AppBoot();</script>
+</body>
+</html>
