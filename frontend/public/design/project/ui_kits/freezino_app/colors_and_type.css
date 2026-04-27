@@ -1,0 +1,165 @@
+/* Freezino Design System — Colors & Type (v2, minimalist refresh)
+   Direction: editorial, anti-casino. Restrained monochrome palette
+   with a single warm accent. No emoji, no loud gradients, no neon.
+   Typography does the work — tight tracking, generous weight
+   contrast, tabular numerics for money. */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ───────────── Surfaces ─────────────
+     A single warm near-black instead of cold gray. Subtle steps. */
+  --bg-0:  #0B0B0C;   /* page */
+  --bg-1:  #121214;   /* primary surface (cards, header) */
+  --bg-2:  #1A1A1D;   /* raised surface (inputs, chips) */
+  --bg-3:  #232326;   /* hover on raised */
+
+  /* Foregrounds */
+  --fg-1:  #F5F4EF;   /* warm off-white — headings, emphasis */
+  --fg-2:  #C9C7C0;   /* body */
+  --fg-3:  #8C8A84;   /* muted */
+  --fg-4:  #555550;   /* hint, placeholder */
+
+  /* Hairlines — always subtle. No heavy borders. */
+  --border-1: rgba(245, 244, 239, 0.08);
+  --border-2: rgba(245, 244, 239, 0.14);
+  --border-focus: var(--accent);
+
+  /* ───────────── Accent ─────────────
+     A single signal color. Used sparingly — for interactive focus,
+     "losing" meter, and danger. Nothing else is red. */
+  --accent:      #E8432C;   /* warm vermillion, not casino-red */
+  --accent-dim:  #C53A26;
+  --accent-soft: rgba(232, 67, 44, 0.10);
+
+  /* ───────────── Semantic ─────────────
+     Subdued. Win is not green neon — it's a soft sage. */
+  --win:     #8FA68E;
+  --win-bg:  rgba(143, 166, 142, 0.10);
+  --lose:    var(--accent);
+  --money:   var(--fg-1);     /* money is white, not gold */
+  --debt:    var(--accent);
+
+  /* Tier markers — subtle, differentiated by luminance not hue */
+  --tier-common:    #8C8A84;
+  --tier-rare:      #B5B3AB;
+  --tier-epic:      #D9D6CC;
+  --tier-legendary: #E8C26A;  /* the only "gold" in the system,
+                                 muted, used only for top-tier */
+
+  /* ───────────── Type ───────────── */
+  --font-sans:    'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif:   'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+
+  /* Editorial scale — fewer steps, larger top end */
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 15px;
+  --text-lg:   17px;
+  --text-xl:   22px;
+  --text-2xl:  28px;
+  --text-3xl:  40px;
+  --text-4xl:  56px;
+  --text-5xl:  80px;
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* ───────────── Spacing (4px base) ───────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ───────────── Radii ─────────────
+     Tight radii across the board. Pills reserved for single-use
+     elements (chips, badges). */
+  --radius-sm:  2px;
+  --radius-md:  6px;     /* inputs, buttons */
+  --radius-lg:  10px;    /* cards */
+  --radius-xl:  16px;    /* large panels */
+  --radius-full:9999px;
+
+  /* ───────────── Shadows — minimal ─────────────
+     Most elevation comes from surface color steps, not shadows. */
+  --shadow-sm: 0 1px 0 rgba(0,0,0,0.4);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.35);
+  --shadow-lg: 0 20px 48px rgba(0,0,0,0.45);
+
+  /* ───────────── Motion ───────────── */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:   120ms;
+  --duration-normal: 220ms;
+  --duration-slow:   360ms;
+}
+
+/* ───────────── Semantic type roles ───────────── */
+.h-display {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-5xl);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--fg-1);
+}
+.h-display i, .h-display em {
+  font-style: italic;
+  font-family: var(--font-serif);
+}
+.h1 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-3xl);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--fg-1);
+}
+.h2 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--fg-1);
+}
+.h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-xl);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--fg-1);
+}
+.p-lg  { font-size: var(--text-lg); color: var(--fg-2); line-height: 1.55; }
+.p     { font-size: var(--text-base); color: var(--fg-2); line-height: 1.55; }
+.p-sm  { font-size: var(--text-sm); color: var(--fg-3); line-height: 1.5; }
+.muted { color: var(--fg-3); }
+.label {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+/* Monospace numerics — money, timers, counters. Always tabular. */
+.mono   { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.money  { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+          font-weight: 500; color: var(--fg-1); }
+.money-accent { color: var(--accent); }
+
+/* Global reset for app root */
+html, body { background: var(--bg-0); color: var(--fg-2); margin: 0; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
