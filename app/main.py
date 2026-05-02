@@ -387,6 +387,7 @@ def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_c
                         end_time,
                         jailed
                     )
+
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                 (
@@ -721,6 +722,7 @@ def get_work_jobs():
 
 
 @app.post("/api/work/skip-jail")
+
 def skip_jail(current_user: Any = Depends(get_current_user)):  #  Skip в работе
     try:
         conn = sqlite3.connect("freezino.db")
