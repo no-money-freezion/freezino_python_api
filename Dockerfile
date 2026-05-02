@@ -71,7 +71,8 @@ COPY --from=builder /root/.local /root/.local
 
 # Copy application code. Only main.py is required at runtime right now.
 # Once BE-003 splits main.py into app/ + migrations/, add those back.
-COPY app/main.py ./
+COPY main.py ./
+COPY app/ ./app/
 
 # Entrypoint symlinks the SQLite file into CWD (KOSTYL — see DO-016).
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
