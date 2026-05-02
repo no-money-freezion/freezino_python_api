@@ -4,6 +4,3 @@ pydantic[email]
 python-jose[cryptography]
 passlib[bcrypt]
 pydantic-settings
-jose
-
-

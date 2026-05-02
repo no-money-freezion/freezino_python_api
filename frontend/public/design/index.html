@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Freezino — Design System v2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+:root {
+  --bg-0:#0A0710; --bg-1:#140F1E; --bg-2:#1E1630;
+  --fg-1:#FFFFFF; --fg-2:#D6CFE6; --fg-3:#9189A8;
+  --border-1:rgba(255,255,255,.08);
+  --border-2:rgba(255,255,255,.16);
+  --gold:#FFC839;
+  --accent:#FF2E63;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg-0); color: var(--fg-1); font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; }
+body { padding: 48px 32px 96px; max-width: 1080px; margin: 0 auto; }
+h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 56px; font-weight: 400; margin: 0 0 8px; letter-spacing: -0.01em; }
+h1 em { font-style: italic; color: var(--gold); }
+.dot { color: var(--accent); }
+.subtitle { color: var(--fg-3); margin: 0 0 48px; font-size: 16px; max-width: 640px; line-height: 1.5; }
+section { margin-bottom: 56px; }
+section h2 { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+a.tile { display: block; padding: 18px 20px; background: var(--bg-1); border: 1px solid var(--border-1); border-radius: 10px; color: var(--fg-1); text-decoration: none; transition: border-color .15s, background .15s; }
+a.tile:hover { border-color: var(--border-2); background: var(--bg-2); }
+a.tile .name { font-weight: 500; font-size: 14px; }
+a.tile .path { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--fg-3); margin-top: 4px; }
+a.cta { display: inline-block; padding: 14px 24px; background: var(--gold); color: #0A0710; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; margin-bottom: 16px; }
+a.cta:hover { background: #FFE14A; }
+.note { padding: 16px 20px; background: var(--bg-1); border: 1px solid var(--border-1); border-radius: 10px; color: var(--fg-2); font-size: 13px; line-height: 1.55; }
+.note code { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,.06); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>freezino<span class="dot">.</span> <em>design system v2</em></h1>
+<p class="subtitle">Static reference bundle exported from Claude Design. Casino aesthetic — gold primary, neon accents, purple-black base. Includes UI kit (all app screens) and preview cards for every token group and component.</p>
+
+<section>
+  <h2>UI Kit</h2>
+  <a class="cta" href="./project/ui_kits/freezino_app/index.html">Open full app prototype →</a>
+  <div class="note">All screens in one prototype: Dashboard, Roulette, Slots, Shop, Credit, Profile, Work, Stats, plus Blackjack, Craps, Crash, Hi-Lo, Top-up, Onboarding, Inbox, Daily wheel, History, Win modal, Lose, Settings, Leaderboard. Self-contained — uses React/Babel from CDN.</div>
+</section>
+
+<section>
+  <h2>Colors</h2>
+  <div class="grid">
+    <a class="tile" href="./project/preview/colors-primary.html"><div class="name">Primary</div><div class="path">colors-primary</div></a>
+    <a class="tile" href="./project/preview/colors-semantic.html"><div class="name">Semantic</div><div class="path">colors-semantic</div></a>
+    <a class="tile" href="./project/preview/colors-surfaces.html"><div class="name">Surfaces</div><div class="path">colors-surfaces</div></a>
+    <a class="tile" href="./project/preview/colors-foreground.html"><div class="name">Foreground</div><div class="path">colors-foreground</div></a>
+    <a class="tile" href="./project/preview/colors-rarity.html"><div class="name">Rarity</div><div class="path">colors-rarity</div></a>
+    <a class="tile" href="./project/preview/colors-roulette.html"><div class="name">Roulette</div><div class="path">colors-roulette</div></a>
+  </div>
+</section>
+
+<section>
+  <h2>Typography</h2>
+  <div class="grid">
+    <a class="tile" href="./project/preview/type-display.html"><div class="name">Display</div><div class="path">type-display</div></a>
+    <a class="tile" href="./project/preview/type-scale.html"><div class="name">Scale</div><div class="path">type-scale</div></a>
+    <a class="tile" href="./project/preview/type-money.html"><div class="name">Money</div><div class="path">type-money</div></a>
+  </div>
+</section>
+
+<section>
+  <h2>Spacing &amp; effects</h2>
+  <div class="grid">
+    <a class="tile" href="./project/preview/spacing-scale.html"><div class="name">Scale</div><div class="path">spacing-scale</div></a>
+    <a class="tile" href="./project/preview/spacing-radii.html"><div class="name">Radii</div><div class="path">spacing-radii</div></a>
+    <a class="tile" href="./project/preview/spacing-shadows.html"><div class="name">Shadows</div><div class="path">spacing-shadows</div></a>
+  </div>
+</section>
+
+<section>
+  <h2>Brand</h2>
+  <div class="grid">
+    <a class="tile" href="./project/preview/brand-logo.html"><div class="name">Logo</div><div class="path">brand-logo</div></a>
+    <a class="tile" href="./project/preview/brand-iconography.html"><div class="name">Iconography</div><div class="path">brand-iconography</div></a>
+    <a class="tile" href="./project/preview/brand-imagery.html"><div class="name">Imagery</div><div class="path">brand-imagery</div></a>
+  </div>
+</section>
+
+<section>
+  <h2>Components</h2>
+  <div class="grid">
+    <a class="tile" href="./project/preview/components-buttons.html"><div class="name">Buttons</div><div class="path">components-buttons</div></a>
+    <a class="tile" href="./project/preview/components-inputs.html"><div class="name">Inputs</div><div class="path">components-inputs</div></a>
+    <a class="tile" href="./project/preview/components-chips.html"><div class="name">Chips</div><div class="path">components-chips</div></a>
+    <a class="tile" href="./project/preview/components-badges.html"><div class="name">Badges</div><div class="path">components-badges</div></a>
+    <a class="tile" href="./project/preview/components-card.html"><div class="name">Card</div><div class="path">components-card</div></a>
+    <a class="tile" href="./project/preview/components-shop-card.html"><div class="name">Shop card</div><div class="path">components-shop-card</div></a>
+    <a class="tile" href="./project/preview/components-stat.html"><div class="name">Stat</div><div class="path">components-stat</div></a>
+    <a class="tile" href="./project/preview/components-toast.html"><div class="name">Toast</div><div class="path">components-toast</div></a>
+    <a class="tile" href="./project/preview/components-nav.html"><div class="name">Nav</div><div class="path">components-nav</div></a>
+  </div>
+</section>
+</body>
+</html>
