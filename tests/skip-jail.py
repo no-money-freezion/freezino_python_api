@@ -24,9 +24,7 @@ def run_test():
     print("\nПопытка начать работу (drug_dealer)...")
     work_data = {"job_type": "drug_dealer"}
 
-    work_skip_jail = requests.post(
-        f"{BASE_URL}/work/skip-jail", json=work_data, headers=headers
-    )
+    work_skip_jail = requests.post(f"{BASE_URL}/work/skip-jail", json=work_data, headers=headers)
     print("Побег из тюрьмы:", work_skip_jail.json())
 
 

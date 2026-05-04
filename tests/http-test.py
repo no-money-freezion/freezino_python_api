@@ -24,15 +24,9 @@ def run_test():
     print("\nПопытка начать работу (office)...")
     work_data = {"job_type": "office"}
     #
-    work_response = requests.post(
-        f"{BASE_URL}/work/start", json=work_data, headers=headers
-    )
-    work_status = requests.get(
-        f"{BASE_URL}/work/status", json=work_data, headers=headers
-    )
-    work_check = requests.post(
-        f"{BASE_URL}/work/complete", json=work_data, headers=headers
-    )
+    work_response = requests.post(f"{BASE_URL}/work/start", json=work_data, headers=headers)
+    work_status = requests.get(f"{BASE_URL}/work/status", json=work_data, headers=headers)
+    work_check = requests.post(f"{BASE_URL}/work/complete", json=work_data, headers=headers)
     # work_cancel = requests.post(
     #     f"{BASE_URL}/work/cancel", json=work_data, headers=headers
     # )
@@ -43,9 +37,7 @@ def run_test():
     # user_profile = requests.get(
     #     f"{BASE_URL}/user/profile", json=work_data, headers=headers
     # )
-    work_history = requests.get(
-        f"{BASE_URL}/work/history", json=work_data, headers=headers
-    )
+    work_history = requests.get(f"{BASE_URL}/work/history", json=work_data, headers=headers)
     print(f"Статус ответа: {work_response.status_code}")
     print("Тело ответа:", work_response.json())
     print("Рабочий статус юзера:", work_status.json())

@@ -43,3 +43,5 @@ Open `swagger-ui.html` in any browser - it loads Swagger UI from CDN.
 - Loan system (friends, bank, microcredit)
 - Real-time blackjack via WebSocket
 # freezino_python_api
+
+Правила и шаблоны для ручного тестирования (Manual QA) находятся в папке [tests/manual/README.md](tests/manual/README.md).
