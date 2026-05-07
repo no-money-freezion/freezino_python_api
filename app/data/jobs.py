@@ -1,0 +1,68 @@
+# app/data/jobs.py
+from typing import Any, Dict
+
+JOB_LIST: Dict[str, Dict[str, Any]] = {
+    "office": {
+        "depends": False,
+        "reward": 500,
+        "duration": 1,
+        "Requirements": "clothing",
+        "money_bonus": 0,
+        "punish": None,
+        "special": None,
+    },
+    "courier": {
+        "depends": True,
+        "reward": 500,
+        "duration": 2,
+        "requirements": "uniform",
+        "money_bonus": 250,
+        "punish": None,
+        "special": "+250 reward if own car",
+    },
+    "lab_rat": {
+        "depends": False,
+        "reward": 500,
+        "duration": 3,
+        "requirements": None,
+        "money_bonus": 0,
+        "punish": None,
+        "special": "Random mutation",
+    },
+    "stunt_driver": {
+        "depends": False,
+        "reward": 1500,
+        "duration": 4,
+        "requirements": "car",
+        "money_bonus": 0,
+        "punish": None,
+        "special": "Car breaks after",
+    },
+    "drug_dealer": {
+        "depends": False,
+        "reward": 2000,
+        "duration": 5,
+        "requirements": None,
+        "money_bonus": 0,
+        "punish": True,
+        "special": "8 year jail sentence",
+    },
+    "streamer": {
+        "depends": True,
+        "reward": 0,
+        "duration": 6,
+        "requirements": None,
+        "money_bonus": 0,
+        "punish": None,
+        "special": "70%=$0, 29%=$1, 1%=$10k",
+    },
+    "bottle_collector": {
+        "depends": False,
+        "reward": 100,
+        "duration": 7,
+        "requirements": None,
+        "money_bonus": 0,
+        "punish": None,
+        "special": "Always available",
+    },
+}

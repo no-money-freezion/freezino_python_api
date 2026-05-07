@@ -1,0 +1,6 @@
+
+SECRET_KEY = "secret_key_test"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+DATABASE_PATH="freezino.db"

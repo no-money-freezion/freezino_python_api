@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Shadows</title><link rel="stylesheet" href="_base.css"><style>body{padding:32px}</style></head><body>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+      
+        <div>
+          <div style="height:80px;background:var(--bg-1);border:1px solid var(--border-1);border-radius:var(--radius-md);box-shadow:0 1px 0 rgba(0,0,0,.4)"></div>
+          <div class="mono" style="font-size:11px;color:var(--fg-3);margin-top:8px">sm</div>
+        </div>
+      
+        <div>
+          <div style="height:80px;background:var(--bg-1);border:1px solid var(--border-1);border-radius:var(--radius-md);box-shadow:0 8px 24px rgba(0,0,0,.35)"></div>
+          <div class="mono" style="font-size:11px;color:var(--fg-3);margin-top:8px">md</div>
+        </div>
+      
+        <div>
+          <div style="height:80px;background:var(--bg-1);border:1px solid var(--border-1);border-radius:var(--radius-md);box-shadow:0 20px 48px rgba(0,0,0,.45)"></div>
+          <div class="mono" style="font-size:11px;color:var(--fg-3);margin-top:8px">lg</div>
+        </div>
+      
+    </div>
+    <p class="p-sm" style="margin-top:16px;max-width:440px">
+      Use shadows only for layered overlays. In-flow surfaces rely on color steps.
+    </p>
+  </body></html>
