@@ -34,11 +34,15 @@ jobs:
 
       - name: Health check
         run: |
-          echo "Waiting 10s for services to stabilize..."
-          sleep 10
-          code=$(curl -s -o /dev/null -w "%{http_code}" https://freezino.online/api/health)
-          if [ "$code" != "200" ]; then
-            echo "::error ::Healthcheck failed: HTTP $code"
-            exit 1
-          fi
-          echo "Health OK (HTTP $code)"
+          echo "Waiting for services to stabilize..."
+          for i in $(seq 1 12); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" https://freezino.online/api/health || echo 000)
+            if [ "$code" = "200" ]; then
+              echo "Health OK (HTTP $code)"
+              exit 0
+            fi
+            echo "attempt $i: HTTP $code — retrying in 5s"
+            sleep 5
+          done
+          echo "::error ::Healthcheck failed after retries"
+          exit 1
