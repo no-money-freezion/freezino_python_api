@@ -3,7 +3,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 import sqlite3
-
+from app.db import get_db
 
 
 from app.security import (
@@ -17,14 +17,11 @@ from app.models.user import UserRegister, UserLogin
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/api/auth/login")
-def login_user(user_data: UserLogin):
+def login_user(user_data: UserLogin, db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = sqlite3.connect("freezino.db")
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute("SELECT * FROM users WHERE email = ?", (user_data.email,))
         user_db = cursor.fetchone()
-
         if user_db is None:
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
 
@@ -49,18 +46,13 @@ def login_user(user_data: UserLogin):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
-    finally:
-        if "conn" in locals():
-            conn.close()
 
 
 @router.post("/api/auth/register")
-def register_user(user: UserRegister):
+def register_user(user: UserRegister, db: sqlite3.Connection = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
     try:
-        conn = sqlite3.connect("freezino.db")
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             """
             INSERT INTO users (username, email, password_hash, balance)
@@ -68,7 +60,7 @@ def register_user(user: UserRegister):
             """,
             (user.username, user.email, hashed_password, 1000.0),
         )
-        conn.commit()
+        db.commit()
         new_user_id = cursor.lastrowid
 
         return {
@@ -92,10 +84,6 @@ def register_user(user: UserRegister):
     except Exception as e:
         print(f"Registration Error: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
-    finally:
-        if "conn" in locals():
-            conn.close()
-
 
 @router.get("/api/health")
 def health_status():

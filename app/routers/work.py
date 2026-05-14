@@ -9,6 +9,7 @@ from app.db import get_connection
 from app.security import get_current_user
 from app.data.jobs import JOB_LIST
 from app.models.work import WorkStartRequest, JobTypeEnum
+from app.db import get_db
 
 router = APIRouter(prefix="/api/work", tags=["work"])
 
@@ -19,12 +20,10 @@ def get_work_jobs():
 
 
 @router.post("/start")
-def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_current_user)):
+def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     print(f"Пользователь {current_user['username']} хочет работать {work.job_type}")
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND jailed = 1 LIMIT 1",
             (current_user["id"],),
@@ -71,7 +70,7 @@ def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_c
                     0,
                 ),
             )
-            conn.commit()
+            db.commit()
             new_session_id = cursor.lastrowid
             return {
                 "success": True,
@@ -88,17 +87,12 @@ def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_c
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
 
 
 @router.get("/status")
-def get_status(current_user: Any = Depends(get_current_user)):
+def get_status(current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0",
             (current_user["id"],),
@@ -136,16 +130,12 @@ def get_status(current_user: Any = Depends(get_current_user)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
 
 
 @router.get("/history")
-def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(get_current_user)):
+def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             """
             SELECT *
@@ -190,16 +180,11 @@ def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(ge
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
-
 
 @router.post("/complete")
-def complete_work(current_user: Any = Depends(get_current_user)):
+def complete_work(current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0 LIMIT 1",
             (current_user["id"],),
@@ -241,7 +226,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 cursor.execute(
                     """
                     UPDATE users
@@ -252,7 +237,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 cursor.execute(
                     """
                     UPDATE work_sessions
@@ -261,7 +246,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                     """,
                     (current_user["id"],),
                 )
-                conn.commit()
+                db.commit()
                 cursor.execute(
                     """
                     UPDATE work_sessions
@@ -273,7 +258,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 end_time = datetime.utcnow()
                 cursor.execute(
                     """
@@ -286,7 +271,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 total_earned = current_user["total_earned"] + earned
                 cursor.execute(
                     """
@@ -299,7 +284,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 new_balance = earned + current_user["balance"]
                 if job_info.get("punish"):
                     cursor.execute(
@@ -312,7 +297,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         "You are going to Jail for 8 game-years, and cant start work anymore"
                     )
 
-                conn.commit()
+                db.commit()
                 return {
                     "success": True,
                     "data": {
@@ -335,16 +320,11 @@ def complete_work(current_user: Any = Depends(get_current_user)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
-
 
 @router.post("/cancel")
-def cancel(current_user: Any = Depends(get_current_user)):
+def cancel(current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0 LIMIT 1",
             (current_user["id"],),
@@ -359,7 +339,7 @@ def cancel(current_user: Any = Depends(get_current_user)):
                 """,
                 (current_user["id"],),
             )
-            conn.commit()
+            db.commit()
             return {
                 "success": True,
                 "message": "work session cancelled successfully",
@@ -367,16 +347,13 @@ def cancel(current_user: Any = Depends(get_current_user)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
+
 
 
 @router.post("/skip-jail")
-def skip_jail(current_user: Any = Depends(get_current_user)):
+def skip_jail(current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 1 AND jailed = 1 ",
             (current_user["id"],),
@@ -387,7 +364,7 @@ def skip_jail(current_user: Any = Depends(get_current_user)):
                 "UPDATE work_sessions SET jailed = 0 WHERE user_id = ? AND completed = 1",
                 (current_user["id"],),
             )
-            conn.commit()
+            db.commit()
             rows = cursor.rowcount
             if rows == 0:
                 raise HTTPException(status_code=400, detail="No jail found")
@@ -404,6 +381,3 @@ def skip_jail(current_user: Any = Depends(get_current_user)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
