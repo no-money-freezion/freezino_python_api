@@ -34,8 +34,6 @@ jobs:
           push: false
           load: true
           tags: freezino-backend:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Run container and curl /api/health
         run: |
@@ -72,5 +70,3 @@ jobs:
           build-args: |
             VITE_API_URL=/api
             VITE_GOOGLE_ENABLED=false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
