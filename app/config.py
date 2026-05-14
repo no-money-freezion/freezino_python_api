@@ -1,6 +1,14 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-SECRET_KEY = "secret_key_test"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    secret_key: str
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+    db_path: str = "./freezino.db"
+    environment: str = "development"
+    log_level: str = "INFO"
+    cors_origins: list[str] = ["http://localhost:5173"]
 
-DATABASE_PATH="freezino.db"
+settings = Settings()  # type: ignore[call-arg]
