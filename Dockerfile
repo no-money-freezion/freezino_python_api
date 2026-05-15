@@ -47,8 +47,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy installed Python packages from the builder stage.
 COPY --from=builder /root/.local /root/.local
 
-# Copy application code. Only main.py is required at runtime right now.
-# Once BE-003 splits main.py into app/ + migrations/, add those back.
+# Copy application code.
 COPY main.py ./
 COPY app/ ./app/
 
