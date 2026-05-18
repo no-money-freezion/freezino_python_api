@@ -1,8 +1,12 @@
 # app/routers/auth.py
 
-
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, status , Depends
 import sqlite3
+from app.db import get_db
+from app.logging import logger
+from jose import JWTError
+from app.db import get_connection
 
 
 
@@ -17,21 +21,22 @@ from app.models.user import UserRegister, UserLogin
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/api/auth/login")
-def login_user(user_data: UserLogin):
+def login_user(user_data: UserLogin, db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = sqlite3.connect("freezino.db")
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute("SELECT * FROM users WHERE email = ?", (user_data.email,))
         user_db = cursor.fetchone()
-
         if user_db is None:
+            logger.info("Login attempt with unknown email: %s", user_data.email)
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
 
         password_hash_from_db = user_db["password_hash"]
 
         if not verify_password(user_data.password, password_hash_from_db):
+            logger.info("Login attempt with unknown email: %s", user_data.email)
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
+
+
 
         return {
             "success": True,
@@ -49,18 +54,14 @@ def login_user(user_data: UserLogin):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
-    finally:
-        if "conn" in locals():
-            conn.close()
 
 
 @router.post("/api/auth/register")
-def register_user(user: UserRegister):
+def register_user(user: UserRegister, db: sqlite3.Connection = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
+    conn = None
     try:
-        conn = sqlite3.connect("freezino.db")
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             """
             INSERT INTO users (username, email, password_hash, balance)
@@ -68,8 +69,9 @@ def register_user(user: UserRegister):
             """,
             (user.username, user.email, hashed_password, 1000.0),
         )
-        conn.commit()
+        db.commit()
         new_user_id = cursor.lastrowid
+        logger.info("User registered successfully: %s", user.email)
 
         return {
             "success": True,
@@ -84,18 +86,19 @@ def register_user(user: UserRegister):
                 "refresh_token": "fake2",
             },
         }
-    except sqlite3.IntegrityError:
+    except sqlite3.IntegrityError as e:
+        # Ожидаемая бизнес-ошибка: дубликат email/username
+        logger.warning(
+            "Registration failed (duplicate): email=%s, username=%s, error=%s",
+            user.email, user.username, str(e)
+        )
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Пользователь с таким username или email уже существует",
         )
     except Exception as e:
         print(f"Registration Error: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
-    finally:
-        if "conn" in locals():
-            conn.close()
-
 
 @router.get("/api/health")
 def health_status():

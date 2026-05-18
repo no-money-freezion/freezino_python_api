@@ -1,6 +1,5 @@
 # app/db.py
 import sqlite3
-from app.config import settings
 from typing import Generator
 from app.config import settings
 

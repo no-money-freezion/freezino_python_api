@@ -1,19 +1,17 @@
 # app/routers/user.py
+import sqlite3
 from typing import Any
-
-from fastapi import APIRouter, Depends, HTTPException
-
+from app.db import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
 from app.db import get_connection
 from app.security import get_current_user
+from app.logging import logger
 
 router = APIRouter(prefix="/api/user", tags=["user"])
-
-
 @router.get("/profile")
-def get_profile(current_user: Any = Depends(get_current_user)):
+def get_profile(current_user: Any = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM users WHERE id = ?",
             (current_user["id"],),
@@ -34,16 +32,14 @@ def get_profile(current_user: Any = Depends(get_current_user)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
-
 
 @router.get("/balance")
-def get_balance(current_user: Any = Depends(get_current_user)):
+def get_balance(
+        current_user: Any = Depends(get_current_user),
+        db: sqlite3.Connection = Depends(get_db)
+):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM users WHERE id = ?",
             (current_user["id"],),
@@ -58,16 +54,12 @@ def get_balance(current_user: Any = Depends(get_current_user)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
 
 
 @router.get("/stats")
-def get_stats(current_user: Any = Depends(get_current_user)):
+def get_stats(current_user: Any = Depends(get_current_user),   db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM users WHERE id = ?",
             (current_user["id"],),
@@ -85,6 +77,3 @@ def get_stats(current_user: Any = Depends(get_current_user)):
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
-    finally:
-        if "conn" in locals():
-            conn.close()
