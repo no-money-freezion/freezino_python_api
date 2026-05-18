@@ -1,9 +1,13 @@
 # app/routers/auth.py
 
-
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, status , Depends
 import sqlite3
 from app.db import get_db
+from app.logging import logger
+from jose import JWTError
+from app.db import get_connection
+
 
 
 from app.security import (
@@ -23,12 +27,16 @@ def login_user(user_data: UserLogin, db: sqlite3.Connection = Depends(get_db)):
         cursor.execute("SELECT * FROM users WHERE email = ?", (user_data.email,))
         user_db = cursor.fetchone()
         if user_db is None:
+            logger.info("Login attempt with unknown email: %s", user_data.email)
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
 
         password_hash_from_db = user_db["password_hash"]
 
         if not verify_password(user_data.password, password_hash_from_db):
+            logger.info("Login attempt with unknown email: %s", user_data.email)
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
+
+
 
         return {
             "success": True,
@@ -51,6 +59,7 @@ def login_user(user_data: UserLogin, db: sqlite3.Connection = Depends(get_db)):
 @router.post("/api/auth/register")
 def register_user(user: UserRegister, db: sqlite3.Connection = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
+    conn = None
     try:
         cursor = db.cursor()
         cursor.execute(
@@ -62,6 +71,7 @@ def register_user(user: UserRegister, db: sqlite3.Connection = Depends(get_db)):
         )
         db.commit()
         new_user_id = cursor.lastrowid
+        logger.info("User registered successfully: %s", user.email)
 
         return {
             "success": True,
@@ -76,9 +86,14 @@ def register_user(user: UserRegister, db: sqlite3.Connection = Depends(get_db)):
                 "refresh_token": "fake2",
             },
         }
-    except sqlite3.IntegrityError:
+    except sqlite3.IntegrityError as e:
+        # Ожидаемая бизнес-ошибка: дубликат email/username
+        logger.warning(
+            "Registration failed (duplicate): email=%s, username=%s, error=%s",
+            user.email, user.username, str(e)
+        )
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Пользователь с таким username или email уже существует",
         )
     except Exception as e:

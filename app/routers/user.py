@@ -1,15 +1,13 @@
 # app/routers/user.py
 import sqlite3
 from typing import Any
-
-from fastapi import APIRouter, Depends, HTTPException
 from app.db import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
 from app.db import get_connection
 from app.security import get_current_user
+from app.logging import logger
 
 router = APIRouter(prefix="/api/user", tags=["user"])
-
-
 @router.get("/profile")
 def get_profile(current_user: Any = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
     try:

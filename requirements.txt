@@ -1,6 +1,12 @@
-fastapi
-uvicorn[standard]
-pydantic[email]
-python-jose[cryptography]
-passlib[bcrypt]
-pydantic-settings
+# Runtime dependencies — single source of truth for the backend image.
+# The backend Dockerfile installs these via `pip install -r requirements.txt`.
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.29,<1.0
+pydantic[email]>=2.6,<3.0
+pydantic-settings>=2.2,<3.0
+python-jose[cryptography]>=3.3,<4.0
+passlib[bcrypt]>=1.7,<2.0
+# bcrypt pinned <4.1: passlib 1.7.x + bcrypt 4.1+ raises a misleading
+# "password cannot be longer than 72 bytes" error on every hash call
+# (upstream incompat — https://github.com/pyca/bcrypt/issues/684).
+bcrypt>=4.0,<4.1

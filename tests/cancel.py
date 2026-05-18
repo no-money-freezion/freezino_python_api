@@ -24,18 +24,12 @@ def run_test():
     print("\nПопытка начать работу (courier)...")
     work_data = {"job_type": "courier"}
 
-    work_response = requests.post(
-        f"{BASE_URL}/work/start", json=work_data, headers=headers
-    )
-    work_status = requests.get(
-        f"{BASE_URL}/work/status", json=work_data, headers=headers
-    )
+    work_response = requests.post(f"{BASE_URL}/work/start", json=work_data, headers=headers)
+    work_status = requests.get(f"{BASE_URL}/work/status", json=work_data, headers=headers)
     # work_check = requests.post(
     #     f"{BASE_URL}/work/complete", json=work_data, headers=headers
     # )
-    work_cancel = requests.post(
-        f"{BASE_URL}/work/cancel", json=work_data, headers=headers
-    )
+    work_cancel = requests.post(f"{BASE_URL}/work/cancel", json=work_data, headers=headers)
 
     print(f"Статус ответа: {work_response.status_code}")
     print("Тело ответа:", work_response.json())

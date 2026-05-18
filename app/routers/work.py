@@ -3,13 +3,15 @@ import sqlite3
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.db import get_connection
 from app.security import get_current_user
 from app.data.jobs import JOB_LIST
 from app.models.work import WorkStartRequest, JobTypeEnum
 from app.db import get_db
+from app.logging import logger
+
 
 router = APIRouter(prefix="/api/work", tags=["work"])
 
@@ -21,7 +23,7 @@ def get_work_jobs():
 
 @router.post("/start")
 def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
-    print(f"Пользователь {current_user['username']} хочет работать {work.job_type}")
+    logger.info("User %s wants to work: %s", current_user["username"], work.job_type)
     try:
         cursor = db.cursor()
         cursor.execute(
@@ -43,7 +45,7 @@ def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_c
         rows = cursor.fetchone()
 
         if rows:
-            raise HTTPException(status_code=400, detail="work session already in progress")
+            raise HTTPException(status_code=409, detail="work session already in progress")
         else:
             cursor.execute(
                 """
@@ -148,9 +150,9 @@ def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(ge
             (current_user["id"], limit, offset),
         )
         rows = cursor.fetchall()
-        if rows is None:
+        if not rows:
             raise HTTPException(
-                status_code=400, detail="Work sessions does not exist for history log"
+                status_code=404, detail="Work sessions does not exist for history log"
             )
         else:
             cursor.execute(
@@ -280,7 +282,7 @@ def complete_work(current_user: Any = Depends(get_current_user),db: sqlite3.Conn
                     WHERE id = ?
                     """,
                     (
-                        total_earned,
+                        earned,
                         current_user["id"],
                     ),
                 )
@@ -303,7 +305,7 @@ def complete_work(current_user: Any = Depends(get_current_user),db: sqlite3.Conn
                     "data": {
                         "earned": earned,
                         "new_balance": new_balance + bonus,
-                        "total_earned": total_earned + earned,
+                        "total_earned": total_earned ,
                         "end_time": end_time,
                         "bonus": bonus,
                     },
@@ -378,6 +380,9 @@ def skip_jail(current_user: Any = Depends(get_current_user),db: sqlite3.Connecti
                 "success": True,
                 "message_jail": "User is not jailed",
             }
-    except Exception as e:
-        print(f"Error: {e}")
-        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
+    except sqlite3.Error as e:
+        logger.exception("Database error in skip_jail for user %s", current_user["id"])
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка базы данных")
+    finally:
+        if conn is not None:
+            conn.close()
