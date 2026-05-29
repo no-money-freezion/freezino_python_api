@@ -3,9 +3,11 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, status , Depends
 import sqlite3
+from app.db import get_db
 from app.logging import logger
 from jose import JWTError
 from app.db import get_connection
+
 
 
 from app.security import (
@@ -18,16 +20,12 @@ from app.models.user import UserRegister, UserLogin
 #
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-@router.post("/login")
-def login_user(user_data: UserLogin):
-    conn = None
+@router.post("/api/auth/login")
+def login_user(user_data: UserLogin, db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn =  get_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute("SELECT * FROM users WHERE email = ?", (user_data.email,))
         user_db = cursor.fetchone()
-
         if user_db is None:
             logger.info("Login attempt with unknown email: %s", user_data.email)
             raise HTTPException(status_code=401, detail="Неверный логин или пароль")
@@ -53,28 +51,17 @@ def login_user(user_data: UserLogin):
                 "refresh_token": "fake2",
             },
         }
-
-    except JWTError as e:
-    # Ошибка генерации токена: логируем, клиенту — 500 (это баг на нашей стороне)
-        logger.exception("JWT creation failed for email: %s", user_data.email)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Ошибка аутентификации"
-        )
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="Внутренняя ошибка сервера")
 
 
-    finally:
-        if conn:
-            conn.close()
-
-@router.post("/register")
-def register_user(user: UserRegister):
+@router.post("/api/auth/register")
+def register_user(user: UserRegister, db: sqlite3.Connection = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
     conn = None
     try:
-        conn = get_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             """
             INSERT INTO users (username, email, password_hash, balance)
@@ -82,7 +69,7 @@ def register_user(user: UserRegister):
             """,
             (user.username, user.email, hashed_password, 1000.0),
         )
-        conn.commit()
+        db.commit()
         new_user_id = cursor.lastrowid
         logger.info("User registered successfully: %s", user.email)
 
@@ -109,11 +96,16 @@ def register_user(user: UserRegister):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Пользователь с таким username или email уже существует",
         )
-    finally:
-        if conn:
-            conn.close()
+    except Exception as e:
+        print(f"Registration Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
-@router.get("/me")
+@router.get("/api/health")
+def health_status():
+    return {"status": "IT'S ALIVE", "timestamp": datetime.now().isoformat()}
+
+
+@router.get("/api/auth/me")
 def read_users_me(current_user=Depends(get_current_user)):
     return {
         "user": {

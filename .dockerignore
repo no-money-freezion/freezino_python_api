@@ -1,0 +1,39 @@
+# Keep the backend build context small and free of secrets.
+# The frontend has its own build context (./frontend) — not affected by this file.
+
+.git
+.github
+.idea
+.vscode
+.DS_Store
+
+# Frontend — built from its own context.
+frontend
+
+# Not needed inside the backend image.
+docs
+tests
+scripts
+backups
+init.sql
+openapi.yaml
+swagger-ui.html
+deploy.sh
+docker-compose*.yml
+.pre-commit-config.yaml
+*.md
+
+# Local DB / env / Python cruft — must never enter the image.
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+.env
+.env.*
+__pycache__
+*.py[cod]
+.venv
+venv
+.ruff_cache
+.mypy_cache
+.pytest_cache

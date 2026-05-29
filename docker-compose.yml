@@ -30,6 +30,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ---- React Frontend (Vite dev server) ----
   frontend:
@@ -52,6 +57,11 @@ services:
       - freezino-network
     depends_on:
       - backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ---- Nginx reverse proxy (dev) ----
   nginx:
@@ -67,6 +77,11 @@ services:
     depends_on:
       - backend
       - frontend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   backend-data:

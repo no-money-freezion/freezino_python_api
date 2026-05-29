@@ -8,8 +8,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.db import get_connection
 from app.security import get_current_user
 from app.data.jobs import JOB_LIST
-from app.models.work import WorkStartRequest
+from app.models.work import WorkStartRequest, JobTypeEnum
+from app.db import get_db
 from app.logging import logger
+
 
 router = APIRouter(prefix="/api/work", tags=["work"])
 
@@ -20,13 +22,10 @@ def get_work_jobs():
 
 
 @router.post("/start")
-def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_current_user)):
+def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     logger.info("User %s wants to work: %s", current_user["username"], work.job_type)
-    conn = None
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND jailed = 1 LIMIT 1",
             (current_user["id"],),
@@ -73,7 +72,7 @@ def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_c
                     0,
                 ),
             )
-            conn.commit()
+            db.commit()
             new_session_id = cursor.lastrowid
             return {
                 "success": True,
@@ -87,21 +86,15 @@ def start_work_session(work: WorkStartRequest, current_user: Any = Depends(get_c
                 },
                 "description": "Work session started",
             }
-    except sqlite3.Error as e:
-        logger.exception("Database error in start_work_session for user %s", current_user["id"])
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка базы данных")
-    finally:
-        if conn is not None:
-            conn.close()
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
 
 
 @router.get("/status")
-def get_status(current_user: Any = Depends(get_current_user)):
-    conn = None
+def get_status(current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0",
             (current_user["id"],),
@@ -136,21 +129,15 @@ def get_status(current_user: Any = Depends(get_current_user)):
                     },
                 }
             }
-    except sqlite3.Error as e:
-        logger.exception("Database error in get_status for user %s", current_user["id"])
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка базы данных")
-    finally:
-        if conn is not None:
-            conn.close()
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
 
 
 @router.get("/history")
-def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(get_current_user)):
-    conn = None
+def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        conn.row_factory=sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             """
             SELECT *
@@ -192,22 +179,14 @@ def get_history(limit: int = 20, offset: int = 0, current_user: Any = Depends(ge
                     "total": total,
                 }
             }
-    except sqlite3.Error as e:
-        logger.exception("Database error in get_history for user %s", current_user["id"])
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка базы данных")
-    finally:
-        if conn is not None:
-            conn.close()
-
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
 
 @router.post("/complete")
-
-def complete_work(current_user: Any = Depends(get_current_user)):
-    conn = None
+def complete_work(current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0 LIMIT 1",
             (current_user["id"],),
@@ -249,7 +228,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 cursor.execute(
                     """
                     UPDATE users
@@ -260,7 +239,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 cursor.execute(
                     """
                     UPDATE work_sessions
@@ -269,7 +248,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                     """,
                     (current_user["id"],),
                 )
-                conn.commit()
+                db.commit()
                 cursor.execute(
                     """
                     UPDATE work_sessions
@@ -281,7 +260,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 end_time = datetime.utcnow()
                 cursor.execute(
                     """
@@ -294,7 +273,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 total_earned = current_user["total_earned"] + earned
                 cursor.execute(
                     """
@@ -307,7 +286,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         current_user["id"],
                     ),
                 )
-                conn.commit()
+                db.commit()
                 new_balance = earned + current_user["balance"]
                 if job_info.get("punish"):
                     cursor.execute(
@@ -320,7 +299,7 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                         "You are going to Jail for 8 game-years, and cant start work anymore"
                     )
 
-                conn.commit()
+                db.commit()
                 return {
                     "success": True,
                     "data": {
@@ -340,21 +319,14 @@ def complete_work(current_user: Any = Depends(get_current_user)):
                     "message": f"Wait {time_left} seconds for your reward",
                 }
 
-
-    except sqlite3.Error as e:
-        logger.exception("Database error in complete_work for user %s", current_user["id"])
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка базы данных")
-    finally:
-        if conn is not None:
-            conn.close()
-
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
 
 @router.post("/cancel")
-def cancel(current_user: Any = Depends(get_current_user)):
-    conn = None
+def cancel(current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 0 LIMIT 1",
             (current_user["id"],),
@@ -369,25 +341,21 @@ def cancel(current_user: Any = Depends(get_current_user)):
                 """,
                 (current_user["id"],),
             )
-            conn.commit()
+            db.commit()
             return {
                 "success": True,
                 "message": "work session cancelled successfully",
             }
-    except sqlite3.Error as e:
-        logger.exception("Database error in cancel for user %s", current_user["id"])
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Ошибка базы данных")
-    finally:
-        if conn is not None:
-            conn.close()
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Ошибка сервера: {str(e)}") from e
+
 
 
 @router.post("/skip-jail")
-def skip_jail(current_user: Any = Depends(get_current_user)):
-    conn = None
+def skip_jail(current_user: Any = Depends(get_current_user),db: sqlite3.Connection = Depends(get_db)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor()
+        cursor = db.cursor()
         cursor.execute(
             "SELECT * FROM work_sessions WHERE user_id = ? AND completed = 1 AND jailed = 1 ",
             (current_user["id"],),
@@ -398,7 +366,7 @@ def skip_jail(current_user: Any = Depends(get_current_user)):
                 "UPDATE work_sessions SET jailed = 0 WHERE user_id = ? AND completed = 1",
                 (current_user["id"],),
             )
-            conn.commit()
+            db.commit()
             rows = cursor.rowcount
             if rows == 0:
                 raise HTTPException(status_code=400, detail="No jail found")
