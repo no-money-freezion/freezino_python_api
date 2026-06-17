@@ -2,7 +2,9 @@
 #
 # Freezino Python API — backend image
 #
-# NOTE: main.py hardcodes sqlite3.connect("freezino.db") relative
+
+#
+# Similarly, main.py hardcodes sqlite3.connect("freezino.db") relative
 # to CWD, ignoring DB_PATH env var. docker/entrypoint.sh symlinks the
 # persistent volume file into CWD as a workaround. Tracked in DO-016.
 
@@ -24,8 +26,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# --- KOSTYL start (see DO-014) ---
+# Runtime dependencies pinned inline. Keep in sync with what main.py imports.
+# bcrypt is pinned to <4.1 because passlib 1.7.x + bcrypt 4.1+ raises a
+# misleading "password cannot be longer than 72 bytes" error on any hash call
+# (upstream incompat; see https://github.com/pyca/bcrypt/issues/684). DO-014
+
+
 COPY requirements.txt .
 RUN pip install --user --no-warn-script-location -r requirements.txt
+
 
 # ================================
 # Runtime stage
@@ -34,7 +44,8 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH=/root/.local/bin:$PATH
+    PATH=/root/.local/bin:$PATH \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
@@ -50,6 +61,8 @@ COPY --from=builder /root/.local /root/.local
 # Copy application code.
 COPY main.py ./
 COPY app/ ./app/
+COPY tests/ ./tests/
+
 
 # Entrypoint symlinks the SQLite file into CWD (KOSTYL — see DO-016).
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh

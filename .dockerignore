@@ -12,7 +12,7 @@ frontend
 
 # Not needed inside the backend image.
 docs
-tests
+#tests
 scripts
 backups
 init.sql
