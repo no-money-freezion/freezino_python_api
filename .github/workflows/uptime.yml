@@ -16,34 +16,50 @@ on:
 
 concurrency:
   group: uptime
-  cancel-in-progress: true
+  # Не отменять предыдущий тик: отменённый job считается провалом и шлёт
+  # письмо, хотя сервис при этом жив. Проверка занимает ~10 секунд, так
+  # что очередь при 10-минутном cron не копится.
+  cancel-in-progress: false
 
 jobs:
   check:
     name: curl freezino.online/api/health
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     steps:
       - name: HTTP health check
         run: |
           set -u
           URL="https://freezino.online/api/health"
           BODY=$(mktemp)
-          code=$(curl -sS -o "$BODY" -w "%{http_code}" --max-time 15 "$URL" || echo "000")
-          echo "GET $URL → HTTP $code"
-          echo "--- body ---"
-          cat "$BODY"
-          echo
-          echo "--- end ---"
+          ATTEMPTS=3
+          DELAY=20
+
+          # Одиночный сетевой глитч или перезапуск бэкенда во время деплоя
+          # не должны поднимать алерт: жалуемся только если сервис лежит
+          # на всех попытках подряд.
+          for attempt in $(seq 1 "$ATTEMPTS"); do
+            code=$(curl -sS -o "$BODY" -w "%{http_code}" --max-time 15 "$URL" || echo "000")
+            echo "attempt $attempt/$ATTEMPTS: GET $URL → HTTP $code"
+            echo "--- body ---"
+            cat "$BODY"
+            echo
+            echo "--- end ---"
+
+            if [ "$code" = "200" ] && grep -q "IT'S ALIVE" "$BODY"; then
+              echo "✓ healthy"
+              exit 0
+            fi
+
+            if [ "$attempt" -lt "$ATTEMPTS" ]; then
+              echo "retrying in ${DELAY}s…"
+              sleep "$DELAY"
+            fi
+          done
 
           if [ "$code" != "200" ]; then
-            echo "::error title=Uptime check failed::HTTP $code (expected 200)"
-            exit 1
+            echo "::error title=Uptime check failed::HTTP $code (expected 200) after $ATTEMPTS attempts"
+          else
+            echo "::error title=Uptime check failed::body missing 'IT'S ALIVE' signature after $ATTEMPTS attempts (Python backend may be down and served by fallback/stale cache)"
           fi
-
-          if ! grep -q "IT'S ALIVE" "$BODY"; then
-            echo "::error title=Uptime check failed::body missing 'IT'S ALIVE' signature (Python backend may be down and served by fallback/stale cache)"
-            exit 1
-          fi
-
-          echo "✓ healthy"
+          exit 1
